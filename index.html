@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es" data-theme="obsidian">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Nexo" />
+    <meta name="application-name" content="Nexo" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="description" content="Tu organización personal: día, semana y mes." />
+    <meta name="theme-color" content="#070709" />
+    <link rel="icon" type="image/svg+xml" href="./icon.svg" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <title>Nexo</title>
+    <script>
+      // Aplica el tema guardado antes de pintar para evitar parpadeos.
+      (function () {
+        var colors = { obsidian: '#070709', alabaster: '#F5F5F7', titanium: '#141413', vision: '#0B0A1A' };
+        try {
+          var t = localStorage.getItem('nexo2:theme');
+          if (t && colors[t]) {
+            document.documentElement.setAttribute('data-theme', t);
+            document.querySelector('meta[name="theme-color"]').setAttribute('content', colors[t]);
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

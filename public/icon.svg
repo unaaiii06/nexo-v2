@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <clipPath id="clip"><path d="M512 0C788 0 924 0 974 50S1024 236 1024 512 1024 924 974 974 788 1024 512 1024 100 1024 50 974 0 788 0 512 0 100 50 50 236 0 512 0Z"/></clipPath>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2a6b"/>
+      <stop offset="0.48" stop-color="#3a2a8f"/>
+      <stop offset="1" stop-color="#0a0f2a"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0.22" cy="0.18" r="0.7">
+      <stop offset="0" stop-color="#6fd3ff" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#6fd3ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.85" cy="0.9" r="0.65">
+      <stop offset="0" stop-color="#b06bff" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#b06bff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass0" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#bfe8ff" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="glass1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e3f4ff" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#9fb8ff" stop-opacity="0.5"/>
+    </linearGradient>
+    <linearGradient id="glass2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9ccff" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#a77bff" stop-opacity="0.45"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0.1"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.22"/>
+      <stop offset="0.5" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="22"/></filter>
+  </defs>
+  <g clip-path="url(#clip)">
+    <path d="M512 0C788 0 924 0 974 50S1024 236 1024 512 1024 924 974 974 788 1024 512 1024 100 1024 50 974 0 788 0 512 0 100 50 50 236 0 512 0Z" fill="url(#bg)"/>
+    <rect width="1024" height="1024" fill="url(#glowA)"/>
+    <rect width="1024" height="1024" fill="url(#glowB)"/>
+    
+    <g opacity="0.95">
+      <rect x="236" y="286" width="420" height="132" rx="66" fill="#0b1030" opacity="0.35" filter="url(#soft)"/>
+      <rect x="236" y="268" width="420" height="132" rx="66" fill="url(#glass0)"/>
+      <rect x="237.5" y="269.5" width="417" height="129" rx="64.5" fill="none" stroke="url(#rim)" stroke-width="3"/>
+      <rect x="264" y="288" width="364" height="22" rx="11" fill="#fff" opacity="0.32"/>
+    </g>
+    <g opacity="0.8">
+      <rect x="318" y="464" width="420" height="132" rx="66" fill="#0b1030" opacity="0.35" filter="url(#soft)"/>
+      <rect x="318" y="446" width="420" height="132" rx="66" fill="url(#glass1)"/>
+      <rect x="319.5" y="447.5" width="417" height="129" rx="64.5" fill="none" stroke="url(#rim)" stroke-width="3"/>
+      <rect x="346" y="466" width="364" height="22" rx="11" fill="#fff" opacity="0.32"/>
+    </g>
+    <g opacity="0.66">
+      <rect x="400" y="642" width="388" height="132" rx="66" fill="#0b1030" opacity="0.35" filter="url(#soft)"/>
+      <rect x="400" y="624" width="388" height="132" rx="66" fill="url(#glass2)"/>
+      <rect x="401.5" y="625.5" width="385" height="129" rx="64.5" fill="none" stroke="url(#rim)" stroke-width="3"/>
+      <rect x="428" y="644" width="332" height="22" rx="11" fill="#fff" opacity="0.32"/>
+    </g>
+    <rect width="1024" height="1024" fill="url(#sheen)"/>
+  </g>
+</svg>

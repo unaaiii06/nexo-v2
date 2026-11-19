@@ -1,0 +1,9 @@
+# Configuración mínima para desplegar las funciones con la CLI de Supabase.
+# El cron y Telegram llaman sin sesión de usuario, así que no se exige JWT;
+# cada función se protege por su cuenta (secreto de Telegram / envío idempotente).
+
+[functions.send-reminders]
+verify_jwt = false
+
+[functions.telegram-webhook]
+verify_jwt = false

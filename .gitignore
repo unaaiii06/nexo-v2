@@ -1,0 +1,11 @@
+node_modules
+dist
+dev-dist
+.DS_Store
+*.log
+
+.env.local
+.env
+supabase/.temp
+supabase/.branches
+supabase/cron.generated.sql
