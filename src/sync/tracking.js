@@ -4,7 +4,11 @@
 import { computeRemindAts, getReminds } from '../lib/reminders';
 
 export const SYNCED = ['tasks', 'events', 'milestones', 'goals', 'habits', 'areas'];
-const ALL = [...SYNCED, 'weekFocus'];
+const ALL = [...SYNCED, 'weekFocus', 'meta'];
+
+/** Preferencias que viajan entre dispositivos (la barra lateral es de cada dispositivo) */
+export const prefsOf = (settings = {}) => ({ theme: settings.theme, custom: settings.custom ?? null, features: settings.features ?? null });
+const samePrefs = (a, b) => JSON.stringify(prefsOf(a)) === JSON.stringify(prefsOf(b));
 
 export const emptySync = () => ({ outbox: {}, cursor: 0, initialized: false });
 
@@ -51,6 +55,7 @@ export function track(prev, next, now = Date.now()) {
     }
     for (const id of before.keys()) if (!ids.has(id)) mark(`${c}:${id}`);
   }
+  if (prev.settings !== next.settings && !samePrefs(prev.settings, next.settings)) mark('meta:prefs');
   if (prev.weekFocus !== next.weekFocus) {
     const keys = new Set([...Object.keys(prev.weekFocus || {}), ...Object.keys(next.weekFocus || {})]);
     for (const k of keys) if ((prev.weekFocus || {})[k] !== (next.weekFocus || {})[k]) mark(`weekFocus:${k}`);
@@ -76,6 +81,9 @@ export function outboxRows(state, limit = 400, skip = {}) {
     if (collection === 'weekFocus') {
       const text = state.weekFocus?.[id];
       data = text != null && text !== '' ? { text } : null;
+    } else if (collection === 'meta') {
+      if (id !== 'prefs') continue;
+      data = prefsOf(state.settings);
     } else {
       data = state[collection].find((x) => x.id === id) ?? null;
     }
@@ -90,6 +98,7 @@ export function applyRemote(state, rows) {
   const outbox = { ...state._sync.outbox };
   const lists = {};
   let weekFocus = state.weekFocus;
+  let settings = state.settings;
   let cursor = state._sync.cursor;
   let touched = false;
 
@@ -101,6 +110,14 @@ export function applyRemote(state, rows) {
     if (pending && pending >= remoteTs) continue; // mi cambio local es más reciente
     if (pending) delete outbox[key];
 
+    if (row.collection === 'meta') {
+      if (row.id === 'prefs' && row.data && !row.deleted) {
+        const d = row.data;
+        settings = { ...settings, ...(d.theme ? { theme: d.theme } : {}), custom: d.custom ?? null, features: d.features ?? null };
+        touched = true;
+      }
+      continue;
+    }
     if (row.collection === 'weekFocus') {
       const nextWf = { ...weekFocus };
       if (row.deleted || !row.data) delete nextWf[row.id];
@@ -124,7 +141,7 @@ export function applyRemote(state, rows) {
   }
 
   if (!touched && cursor === state._sync.cursor) return state;
-  return { ...state, ...lists, weekFocus, _sync: { ...state._sync, outbox, cursor } };
+  return { ...state, ...lists, weekFocus, settings, _sync: { ...state._sync, outbox, cursor } };
 }
 
 /** Primera sincronización del dispositivo: sube lo que solo existe aquí */
@@ -132,6 +149,7 @@ export function markLocalOnly(state, serverKeys, now = Date.now()) {
   const outbox = { ...state._sync.outbox };
   for (const c of SYNCED) for (const item of state[c]) if (!serverKeys.has(`${c}:${item.id}`)) outbox[`${c}:${item.id}`] = now;
   for (const k of Object.keys(state.weekFocus || {})) if (!serverKeys.has(`weekFocus:${k}`)) outbox[`weekFocus:${k}`] = now;
+  if (!serverKeys.has('meta:prefs')) outbox['meta:prefs'] = now;
   return { ...state, _sync: { ...state._sync, outbox, initialized: true } };
 }
 

@@ -5,6 +5,7 @@ import { useUI } from '../store/ui';
 import { areaById, goalById } from '../store/selectors';
 import { cx, haptic } from '../lib/utils';
 import { formatDuration, relativeDay } from '../lib/dates';
+import { useFeatures } from '../lib/features';
 import { Check, PriorityDot, AreaBadge } from './primitives';
 
 /**
@@ -14,7 +15,8 @@ export default function TaskRow({ task, showDate, showGoal = true, actions, clas
   const { state, actions: a } = useStore();
   const { openEditor } = useUI();
   const area = areaById(state, task.areaId);
-  const goal = showGoal ? goalById(state, task.goalId) : null;
+  const f = useFeatures();
+  const goal = showGoal && f.goals ? goalById(state, task.goalId) : null;
   const color = 'rgb(var(--accent))';
 
   return (
@@ -48,7 +50,7 @@ export default function TaskRow({ task, showDate, showGoal = true, actions, clas
         </div>
         {(area || goal || task.start || task.priority || showDate || task.estimate) && (
           <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] muted">
-            <PriorityDot priority={task.priority} />
+            {f.priorities && <PriorityDot priority={task.priority} />}
             {showDate && task.date && <span className="tabular-nums">{relativeDay(task.date)}</span>}
             {task.start && (
               <span className="inline-flex items-center gap-1 tabular-nums">
@@ -57,8 +59,8 @@ export default function TaskRow({ task, showDate, showGoal = true, actions, clas
                 {task.end ? `–${task.end}` : ''}
               </span>
             )}
-            {!task.start && !compact && task.estimate ? <span className="tabular-nums">{formatDuration(task.estimate)}</span> : null}
-            {!task.done && nextRemind(task) && (
+            {f.estimates && !task.start && !compact && task.estimate ? <span className="tabular-nums">{formatDuration(task.estimate)}</span> : null}
+            {f.reminders && !task.done && nextRemind(task) && (
               <span className="inline-flex items-center gap-1 tabular-nums text-accent">
                 <BellRing size={11} />
                 {formatRemind(nextRemind(task))}

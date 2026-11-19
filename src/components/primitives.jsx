@@ -195,7 +195,7 @@ export function Segmented({ options, value, onChange, size = 'md', className }) 
       role="tablist"
     >
       <span
-        className="absolute bottom-1 top-1 rounded-[9px] transition-transform duration-500 ease-spring"
+        className="absolute bottom-1 top-1 rounded-[calc(9px*var(--rk))] transition-transform duration-500 ease-spring"
         style={{
           left: 4,
           width: `calc((100% - 8px) / ${options.length})`,

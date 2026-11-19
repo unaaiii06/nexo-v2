@@ -8,6 +8,7 @@ import { goalProgress, goalsOfMonth } from '../store/selectors';
 import { addDays, addMonths, monthKeyOf, startOfWeek, todayKey, formatMonthYear, timeToMinutes, minutesToTime } from '../lib/dates';
 import { AREA_COLORS, MILESTONE_TYPES, PRIORITIES, cx } from '../lib/utils';
 import { HABIT_ICONS } from './icons';
+import { useFeatures } from '../lib/features';
 import { REMIND_OPTIONS, MAX_REMINDS, computeOne, computeRemindAts, getReminds, sameRemind, toLocalInput, formatRemind } from '../lib/reminders';
 
 const TYPES = [
@@ -74,6 +75,10 @@ export default function Editor() {
 }
 
 function EditorInner({ editor, onClose }) {
+  const f = useFeatures();
+  const types = TYPES.filter(
+    (t) => (t.value !== 'event' || f.agenda) && (t.value !== 'milestone' || f.milestones) && (t.value !== 'goal' || f.goals) && (t.value !== 'habit' || f.habits),
+  );
   const { state, actions } = useStore();
   const { showToast } = useUI();
   const isNew = !editor.item;
@@ -178,7 +183,7 @@ function EditorInner({ editor, onClose }) {
         className="space-y-5"
       >
         {isNew && !editor.lockType && (
-          <Segmented options={TYPES} value={type} onChange={setType} size="sm" />
+          <Segmented options={types} value={type} onChange={setType} size="sm" />
         )}
 
         <input
@@ -216,6 +221,7 @@ function AreaSelect({ value, onChange, state }) {
 }
 
 function TaskFields({ draft, set, state }) {
+  const f = useFeatures();
   const today = todayKey();
   const tomorrow = addDays(today, 1);
   const monday = startOfWeek(today);
@@ -252,6 +258,7 @@ function TaskFields({ draft, set, state }) {
         )}
       </Field>
 
+      {f.priorities && (
       <Field label="Prioridad">
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => set({ priority: null })} className={cx('chip', !draft.priority && 'chip-active')}>
@@ -265,8 +272,9 @@ function TaskFields({ draft, set, state }) {
           ))}
         </div>
       </Field>
+      )}
 
-      {draft.date && (
+      {draft.date && f.mits && (
         <button
           type="button"
           onClick={() => set({ mit: !draft.mit })}
@@ -286,10 +294,11 @@ function TaskFields({ draft, set, state }) {
         </button>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className={cx('grid grid-cols-1 gap-4', f.goals && 'sm:grid-cols-2')}>
         <Field label="Área">
           <AreaSelect value={draft.areaId} onChange={(areaId) => set({ areaId })} state={state} />
         </Field>
+        {f.goals && (
         <Field label="Objetivo mensual">
           <select
             className="field"
@@ -308,8 +317,10 @@ function TaskFields({ draft, set, state }) {
             ))}
           </select>
         </Field>
+        )}
       </div>
 
+      {f.estimates && (
       <Field label="Duración estimada">
         <div className="flex flex-wrap gap-2">
           {ESTIMATES.map((m) => (
@@ -319,6 +330,7 @@ function TaskFields({ draft, set, state }) {
           ))}
         </div>
       </Field>
+      )}
 
       {draft.date && (
         <div>
@@ -331,7 +343,7 @@ function TaskFields({ draft, set, state }) {
             }}
             className={cx('chip', timeOn && 'chip-active')}
           >
-            <Clock3 size={14} /> {timeOn ? 'Bloque en la agenda' : 'Añadir a la agenda'}
+            <Clock3 size={14} /> {timeOn ? (f.agenda ? 'Bloque en la agenda' : 'Con hora') : f.agenda ? 'Añadir a la agenda' : 'Añadir hora'}
           </button>
           {timeOn && (
             <div className="mt-3 grid grid-cols-2 gap-3">
@@ -346,7 +358,7 @@ function TaskFields({ draft, set, state }) {
         </div>
       )}
 
-      <RemindField draft={draft} set={set} />
+      {f.reminders && <RemindField draft={draft} set={set} />}
 
       <Field label="Notas">
         <textarea className="field min-h-[88px] resize-none" placeholder="Detalles, enlaces, contexto…" value={draft.notes || ''} onChange={(e) => set({ notes: e.target.value })} />
@@ -444,6 +456,7 @@ function RemindField({ draft, set }) {
 }
 
 function EventFields({ draft, set, state }) {
+  const f = useFeatures();
   return (
     <>
       <Field label="Día">
@@ -460,7 +473,7 @@ function EventFields({ draft, set, state }) {
       <Field label="Área">
         <AreaSelect value={draft.areaId} onChange={(areaId) => set({ areaId })} state={state} />
       </Field>
-      <RemindField draft={draft} set={set} />
+      {f.reminders && <RemindField draft={draft} set={set} />}
     </>
   );
 }

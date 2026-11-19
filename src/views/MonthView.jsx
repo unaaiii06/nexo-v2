@@ -10,26 +10,33 @@ import { useToday } from '../lib/hooks';
 import { cx, haptic, MILESTONE_TYPES } from '../lib/utils';
 import { AreaBadge, EmptyState, ProgressBar, SectionTitle } from '../components/primitives';
 import { HABIT_ICONS, iconFor } from '../components/icons';
+import { useFeatures } from '../lib/features';
 import Sheet from '../components/Sheet';
 
 const typeColor = (m, area) => area?.color || (m.type === 'limite' ? '#FF453A' : '#0A84FF');
 
 export default function MonthView() {
+  const f = useFeatures();
   const today = useToday();
   const [month, setMonth] = useState(() => monthKeyOf(today));
   const [selected, setSelected] = useState(null);
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-5 stagger">
-      <CalendarCard month={month} setMonth={setMonth} today={today} onSelect={setSelected} />
-      <GoalsCard month={month} today={today} />
-      <HabitMatrix month={month} today={today} />
+      {f.milestones && <CalendarCard month={month} setMonth={setMonth} today={today} onSelect={setSelected} wide={!f.goals} />}
+      {f.goals && <GoalsCard month={month} today={today} wide={!f.milestones} />}
+      {f.habits && <HabitMatrix month={month} today={today} />}
+      {!f.milestones && !f.goals && !f.habits && (
+        <section className="glass rounded-[calc(28px*var(--rk))] lg:col-span-12">
+          <EmptyState icon={CalendarDays} title="Nada que mostrar en «Mes»" text="Activa hitos, objetivos o hábitos en Ajustes → Funciones." />
+        </section>
+      )}
       <DaySheet date={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }
 
-function CalendarCard({ month, setMonth, today, onSelect }) {
+function CalendarCard({ month, setMonth, today, onSelect, wide }) {
   const { state } = useStore();
   const cells = monthMatrix(month);
   // Recorta la 6.ª semana si es completamente del mes siguiente
@@ -37,7 +44,7 @@ function CalendarCard({ month, setMonth, today, onSelect }) {
   const count = state.milestones.filter((m) => monthKeyOf(m.date) === month).length;
 
   return (
-    <section className="glass rounded-[28px] p-4 md:p-5 lg:col-span-8">
+    <section className={`glass rounded-[calc(28px*var(--rk))] p-4 md:p-5 ${wide ? 'lg:col-span-12' : 'lg:col-span-8'}`}>
       <div className="mb-4 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-accent/15 text-accent">
@@ -88,7 +95,7 @@ function CalendarCard({ month, setMonth, today, onSelect }) {
               <span
                 className={cx(
                   'flex h-7 w-7 items-center justify-center rounded-full text-[13px] font-semibold tabular-nums md:h-6 md:w-6 md:text-[12px]',
-                  isToday && 'bg-accent text-white shadow-[0_0_12px_rgb(var(--accent)/0.6)]',
+                  isToday && 'bg-accent text-on-accent shadow-[0_0_12px_rgb(var(--accent)/0.6)]',
                 )}
               >
                 {fromKey(d).getDate()}
@@ -175,14 +182,14 @@ function DaySheet({ date, onClose }) {
   );
 }
 
-function GoalsCard({ month, today }) {
+function GoalsCard({ month, today, wide }) {
   const { state } = useStore();
   const { openEditor, showToast } = useUI();
   const goals = goalsOfMonth(state, month);
   const avg = goals.length ? Math.round(goals.reduce((s, g) => s + goalProgress(state, g.id).pct, 0) / goals.length) : 0;
 
   return (
-    <section className="glass rounded-[28px] p-5 lg:col-span-4">
+    <section className={`glass rounded-[calc(28px*var(--rk))] p-5 ${wide ? 'lg:col-span-12' : 'lg:col-span-4'}`}>
       <SectionTitle
         icon={Target}
         title="Objetivos del mes"
@@ -240,7 +247,7 @@ function HabitMatrix({ month, today }) {
   const days = monthDays(month);
 
   return (
-    <section className="glass rounded-[28px] p-5 lg:col-span-12">
+    <section className="glass rounded-[calc(28px*var(--rk))] p-5 lg:col-span-12">
       <SectionTitle icon={Grid3x3} title="Matriz de constancia" subtitle={`Hábitos de ${formatMonthYear(month).toLowerCase()}`} />
       <div className="no-scrollbar -mx-5 overflow-x-auto px-5">
         <div className="min-w-max space-y-2.5">
@@ -278,7 +285,7 @@ function HabitMatrix({ month, today }) {
                           haptic();
                           actions.toggleHabit(h.id, d);
                         }}
-                        className={cx('h-[14px] w-[14px] rounded-[4px] transition-all duration-300', d === today && 'ring-1 ring-fg/40 ring-offset-0')}
+                        className={cx('h-[14px] w-[14px] rounded-[calc(4px*var(--rk))] transition-all duration-300', d === today && 'ring-1 ring-fg/40 ring-offset-0')}
                         style={{
                           background: done ? h.color : future ? 'rgb(var(--fg) / 0.03)' : 'rgb(var(--fg) / 0.08)',
                           boxShadow: done ? `0 0 6px color-mix(in srgb, ${h.color} 50%, transparent)` : undefined,

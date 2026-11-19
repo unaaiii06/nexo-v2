@@ -1,10 +1,13 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Download, Upload, RotateCcw, ShieldCheck, Eraser, LogOut, RefreshCw, History, Smartphone } from 'lucide-react';
 import Sheet from './Sheet';
 import Avatar from './Avatar';
 import TelegramCard from './TelegramCard';
 import { syncLabel } from './SyncBadge';
-import { ThemeCards } from './ThemePicker';
+import { ThemeCards, Customizer } from './ThemePicker';
+import FeaturesPanel from './FeaturesPanel';
+import { Segmented } from './primitives';
+import { useFeatures } from '../lib/features';
 import { useStore, normalizeState } from '../store/AppStore';
 import { useAuth } from '../store/auth';
 import { useUI } from '../store/ui';
@@ -37,7 +40,13 @@ export default function SettingsSheet() {
   const { user, isCloud, signOut, rename } = useAuth();
   const fileRef = useRef(null);
   const [name, setName] = useState(user?.name || '');
-  const [confirm, setConfirm] = useState(null); // 'seed' | 'empty' | 'logout' | 'v1:<id>'
+  const f = useFeatures();
+  const [tab, setTab] = useState(typeof settings === 'string' ? settings : 'account');
+  const [confirm, setConfirm] = useState(null);
+  // Al abrir, va a la pestaña pedida (p. ej. el botón de paleta abre «Apariencia»)
+  useEffect(() => {
+    if (settings) setTab(typeof settings === 'string' ? settings : 'account');
+  }, [settings]); // 'seed' | 'empty' | 'logout' | 'v1:<id>'
   const v1 = settings ? listV1Profiles() : [];
 
   const ask = (what, run) => {
@@ -110,8 +119,39 @@ export default function SettingsSheet() {
   }
 
   return (
-    <Sheet open={settings} onClose={close} title="Ajustes" size="md">
-      <div className="space-y-6">
+    <Sheet open={Boolean(settings)} onClose={close} title="Ajustes" size="md">
+      <Segmented
+        className="mb-5"
+        size="sm"
+        options={[
+          { value: 'account', label: 'Cuenta' },
+          { value: 'appearance', label: 'Apariencia' },
+          { value: 'features', label: 'Funciones' },
+          { value: 'data', label: 'Datos' },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
+      {tab === 'appearance' && (
+        <div className="space-y-6 animate-fade-in">
+          <section>
+            <p className="eyebrow mb-2.5">Temas</p>
+            <ThemeCards />
+          </section>
+          <section>
+            <p className="eyebrow mb-2.5">Personalización</p>
+            <Customizer />
+          </section>
+          <p className="text-center text-[12px] faint">El tema y la personalización se sincronizan entre tus dispositivos.</p>
+        </div>
+      )}
+      {tab === 'features' && (
+        <div className="animate-fade-in">
+          <FeaturesPanel />
+        </div>
+      )}
+      {tab === 'account' && (
+      <div className="space-y-6 animate-fade-in">
         {/* Cuenta */}
         <section>
           <p className="eyebrow mb-2.5">Cuenta</p>
@@ -173,17 +213,18 @@ export default function SettingsSheet() {
         </section>
 
         {/* Telegram */}
+        {f.reminders && (
         <section>
           <p className="eyebrow mb-2.5">Recordatorios por Telegram</p>
           <TelegramCard />
         </section>
+        )}
 
-        <section>
-          <p className="eyebrow mb-2.5">Tema de este dispositivo</p>
-          <ThemeCards />
-        </section>
 
-        {/* Datos */}
+      </div>
+      )}
+      {tab === 'data' && (
+      <div className="space-y-6 animate-fade-in">
         <section>
           <p className="eyebrow mb-2.5">Datos</p>
           <div className="divide-hairline overflow-hidden rounded-2xl card">
@@ -245,6 +286,7 @@ export default function SettingsSheet() {
         </section>
         <p className="pb-2 text-center text-[12px] faint">Nexo 2 · {state.tasks.length} tareas</p>
       </div>
+      )}
     </Sheet>
   );
 }

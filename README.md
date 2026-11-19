@@ -12,6 +12,16 @@ Todo lo demás es igual que en la v1: Bandeja, Hoy, Semana, Mes, Áreas, 4 temas
 
 ---
 
+## Personalización
+
+- **13 temas** en Ajustes → Apariencia:
+  - **Oscuros:** Obsidian, Titanium, Océano, Bosque y Grafito.
+  - **Vivos (con fondo animado):** Vision, Aurora, Atardecer y Neón Cyber.
+  - **Claros:** Alabaster, Cuarzo Rosa, Lavanda y Papel.
+- **Personalización encima del tema:** color de acento (12 colores o cualquiera con el selector), tipografía (sistema, redondeada, serif o mono), esquinas, efecto cristal (sólido, cristal o intenso), fondo (liso, luces o animado) y animaciones.
+- **Funciones (Ajustes → Funciones):** activa o desactiva apartados (Bandeja, Semana, Mes, Áreas) y bloques (hábitos, objetivos, hitos, agenda, prioridades, duración, enfoque semanal, revisión, saludos, progreso, Telegram, celebraciones). Al desactivar algo no se borra ningún dato.
+- El tema, la personalización y las funciones se **sincronizan** entre tus dispositivos. Los temas están en `src/lib/themes.js` y las funciones en `src/lib/features.js`.
+
 ## Cómo funciona
 
 ```

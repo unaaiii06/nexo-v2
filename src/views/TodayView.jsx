@@ -7,16 +7,25 @@ import { useNow, useToday } from '../lib/hooks';
 import { minutesToTime, relativeDay, timeToMinutes } from '../lib/dates';
 import { cx, haptic, pct } from '../lib/utils';
 import TaskRow from '../components/TaskRow';
-import { Check, ProgressRing, SectionTitle } from '../components/primitives';
+import { Check, EmptyState, ProgressRing, SectionTitle } from '../components/primitives';
+import { useFeatures } from '../lib/features';
 import { HABIT_ICONS, iconFor } from '../components/icons';
 
 export default function TodayView() {
+  const f = useFeatures();
+  // Sin agenda, el resto de tarjetas se reparten en dos columnas
+  const span = f.agenda ? 'lg:col-span-5' : 'lg:col-span-6';
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-5 stagger">
-      <MitsCard />
-      <AgendaCard />
-      <HabitsCard />
-      <SecondaryCard />
+      {f.mits && <MitsCard span={span} />}
+      {f.agenda && <AgendaCard />}
+      {f.habits && <HabitsCard span={span} />}
+      {(f.secondary || f.overdue) && <SecondaryCard span={span} />}
+      {!f.mits && !f.agenda && !f.habits && !f.secondary && !f.overdue && (
+        <section className="glass rounded-[calc(28px*var(--rk))] lg:col-span-12">
+          <EmptyState icon={ListChecks} title="Has ocultado todos los bloques de «Hoy»" text="Actívalos de nuevo en Ajustes → Funciones." />
+        </section>
+      )}
     </div>
   );
 }
@@ -24,7 +33,7 @@ export default function TodayView() {
 /* ------------------------------------------------------------------ */
 /* 1. Las 3 prioridades del día                                        */
 /* ------------------------------------------------------------------ */
-function MitsCard() {
+function MitsCard({ span }) {
   const { state } = useStore();
   const { openEditor } = useUI();
   const today = useToday();
@@ -34,7 +43,7 @@ function MitsCard() {
   const all = mits.length > 0 && done === mits.length;
 
   return (
-    <section className="glass relative overflow-hidden rounded-[28px] p-5 lg:col-span-5">
+    <section className={`glass relative overflow-hidden rounded-[calc(28px*var(--rk))] p-5 ${span}`}>
       {/* Brillo sutil */}
       <div
         className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-60"
@@ -144,7 +153,7 @@ function AgendaCard() {
   const hours = Array.from({ length: END_H - START_H + 1 }, (_, i) => START_H + i);
 
   return (
-    <section className="glass flex flex-col rounded-[28px] p-5 lg:col-span-7 lg:row-span-2">
+    <section className="glass flex flex-col rounded-[calc(28px*var(--rk))] p-5 lg:col-span-7 lg:row-span-2">
       <SectionTitle
         icon={Clock3}
         title="Agenda"
@@ -258,14 +267,14 @@ function AgendaCard() {
 /* ------------------------------------------------------------------ */
 /* 3a. Hábitos diarios                                                 */
 /* ------------------------------------------------------------------ */
-function HabitsCard() {
+function HabitsCard({ span }) {
   const { state, actions } = useStore();
   const { openEditor } = useUI();
   const today = useToday();
   const doneCount = state.habits.filter((h) => h.log[today]).length;
 
   return (
-    <section className="glass rounded-[28px] p-5 lg:col-span-5">
+    <section className={`glass rounded-[calc(28px*var(--rk))] p-5 ${span}`}>
       <SectionTitle
         icon={Repeat}
         title="Hábitos"
@@ -330,12 +339,13 @@ function HabitsCard() {
 /* ------------------------------------------------------------------ */
 /* 3b. Tareas secundarias + pendientes de días anteriores              */
 /* ------------------------------------------------------------------ */
-function SecondaryCard() {
+function SecondaryCard({ span }) {
+  const f = useFeatures();
   const { state, actions } = useStore();
   const { showToast } = useUI();
   const today = useToday();
   const [text, setText] = useState('');
-  const list = sortTasks(tasksOn(state, today).filter((t) => !t.mit));
+  const list = sortTasks(tasksOn(state, today).filter((t) => !f.mits || !t.mit));
   const overdue = overdueTasks(state, today).filter((t) => t.date);
   const mitCount = tasksOn(state, today).filter((t) => t.mit).length;
 
@@ -356,9 +366,17 @@ function SecondaryCard() {
     showToast('Ahora es una prioridad del día');
   };
 
+  if (!f.secondary && !(f.overdue && overdue.length)) return null;
+
   return (
-    <section className="glass rounded-[28px] p-5 lg:col-span-5">
-      <SectionTitle icon={ListChecks} title="Tareas secundarias" subtitle={`${list.filter((t) => t.done).length} de ${list.length} hechas`} />
+    <section className={`glass rounded-[calc(28px*var(--rk))] p-5 ${span}`}>
+      {f.secondary && (
+        <>
+      <SectionTitle
+        icon={ListChecks}
+        title={f.mits ? 'Tareas secundarias' : 'Tareas de hoy'}
+        subtitle={`${list.filter((t) => t.done).length} de ${list.length} hechas`}
+      />
       <div className="space-y-2">
         {list.map((t) => (
           <TaskRow
@@ -366,7 +384,7 @@ function SecondaryCard() {
             task={t}
             compact
             actions={
-              !t.done && (
+              !t.done && f.mits && (
                 <button type="button" className="icon-btn !h-9 !w-9 faint" onClick={() => promote(t)} aria-label="Convertir en prioridad del día">
                   <Star size={16} />
                 </button>
@@ -386,9 +404,11 @@ function SecondaryCard() {
           aria-label="Nuevo recado para hoy"
         />
       </form>
+        </>
+      )}
 
-      {overdue.length > 0 && (
-        <div className="mt-5">
+      {f.overdue && overdue.length > 0 && (
+        <div className={f.secondary ? 'mt-5' : ''}>
           <p className="eyebrow mb-2 flex items-center gap-1.5 !text-warn">
             <AlertCircle size={12} /> Pendientes de días anteriores
           </p>

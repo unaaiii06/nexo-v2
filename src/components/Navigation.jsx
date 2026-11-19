@@ -6,6 +6,7 @@ import { formatLongDate } from '../lib/dates';
 import { useToday } from '../lib/hooks';
 import { cx, haptic } from '../lib/utils';
 import { ProgressBar } from './primitives';
+import { useFeatures } from '../lib/features';
 import { useAuth } from '../store/auth';
 import Avatar from './Avatar';
 
@@ -17,6 +18,11 @@ export const NAV = [
   { id: 'areas', label: 'Áreas', long: 'Proyectos y áreas', icon: LayoutGrid },
 ];
 
+/** Apartados visibles según Ajustes → Funciones («Hoy» siempre) */
+export function visibleNav(f) {
+  return NAV.filter((n) => n.id === 'today' || f[n.id]);
+}
+
 function Logo({ small }) {
   return (
     <img
@@ -24,7 +30,7 @@ function Logo({ small }) {
       alt=""
       width={small ? 30 : 34}
       height={small ? 30 : 34}
-      className="shrink-0 rounded-[9px] shadow-lg"
+      className="shrink-0 rounded-[calc(9px*var(--rk))] shadow-lg"
       draggable={false}
     />
   );
@@ -35,6 +41,8 @@ export function Sidebar() {
   const { state, actions } = useStore();
   const { view, setView, openEditor, setSettings } = useUI();
   const { user } = useAuth();
+  const f = useFeatures();
+  const nav = visibleNav(f);
   const today = useToday();
   const progress = dayProgress(state, today);
   const inboxCount = inboxTasks(state).length;
@@ -43,7 +51,7 @@ export function Sidebar() {
   return (
     <aside
       className={cx(
-        'glass fixed bottom-4 left-4 top-4 z-30 hidden flex-col rounded-[28px] p-3 transition-[width] duration-500 ease-spring md:flex',
+        'glass fixed bottom-4 left-4 top-4 z-30 hidden flex-col rounded-[calc(28px*var(--rk))] p-3 transition-[width] duration-500 ease-spring md:flex',
         collapsed ? 'w-[76px]' : 'w-[264px]',
       )}
       style={{ top: 'max(16px, env(safe-area-inset-top))', left: 'max(16px, env(safe-area-inset-left))' }}
@@ -59,7 +67,7 @@ export function Sidebar() {
         )}
       </div>
 
-      {!collapsed && (
+      {!collapsed && f.progress && (
         <div className="mb-4 rounded-2xl p-3.5 card">
           <div className="mb-2 flex items-baseline justify-between">
             <span className="eyebrow">Progreso de hoy</span>
@@ -73,7 +81,7 @@ export function Sidebar() {
       )}
 
       <nav className="flex flex-col gap-1">
-        {NAV.map((item) => {
+        {nav.map((item) => {
           const active = view === item.id;
           const Icon = item.icon;
           return (
@@ -95,7 +103,7 @@ export function Sidebar() {
               {item.id === 'inbox' && inboxCount > 0 && (
                 <span
                   className={cx(
-                    'rounded-full bg-accent px-1.5 text-[11px] font-semibold leading-[18px] text-white tabular-nums',
+                    'rounded-full bg-accent px-1.5 text-[11px] font-semibold leading-[18px] text-on-accent tabular-nums',
                     collapsed && 'absolute right-1.5 top-1',
                   )}
                 >
@@ -148,6 +156,7 @@ export function Sidebar() {
 /** Tab Bar inferior de cristal (iPhone) con botón flotante + */
 export function TabBar() {
   const { state } = useStore();
+  const nav = visibleNav(useFeatures());
   const { view, setView, openEditor } = useUI();
   const inboxCount = inboxTasks(state).length;
 
@@ -172,12 +181,12 @@ export function TabBar() {
       </button>
 
       <nav
-        className="glass fixed bottom-0 left-0 right-0 z-30 rounded-t-[26px] border-b-0 md:hidden"
+        className="glass fixed bottom-0 left-0 right-0 z-30 rounded-t-[calc(26px*var(--rk))] border-b-0 md:hidden"
         style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' }}
         aria-label="Navegación principal"
       >
-        <div className="grid grid-cols-5 px-1 pt-1.5">
-          {NAV.map((item) => {
+        <div className="grid px-1 pt-1.5" style={{ gridTemplateColumns: `repeat(${nav.length}, minmax(0, 1fr))` }}>
+          {nav.map((item) => {
             const active = view === item.id;
             const Icon = item.icon;
             return (

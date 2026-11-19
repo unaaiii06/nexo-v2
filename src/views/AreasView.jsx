@@ -7,9 +7,11 @@ import { formatShortDate, relativeDay } from '../lib/dates';
 import { useToday } from '../lib/hooks';
 import { cx } from '../lib/utils';
 import TaskRow from '../components/TaskRow';
+import { useFeatures } from '../lib/features';
 import { AreaIcon, EmptyState, ProgressBar, ProgressRing } from '../components/primitives';
 
 export default function AreasView() {
+  const f = useFeatures();
   const { state } = useStore();
   const { areaFilter, setAreaFilter } = useUI();
   const today = useToday();
@@ -34,7 +36,7 @@ export default function AreasView() {
               key={area.id}
               type="button"
               onClick={() => setAreaFilter(active ? null : area.id)}
-              className={cx('glass pressable relative overflow-hidden rounded-[26px] p-5 text-left', span, active && 'ring-2')}
+              className={cx('glass pressable relative overflow-hidden rounded-[calc(26px*var(--rk))] p-5 text-left', span, active && 'ring-2')}
               style={active ? { '--tw-ring-color': area.color } : undefined}
               aria-pressed={active}
             >
@@ -50,11 +52,13 @@ export default function AreasView() {
               </div>
               <h3 className="relative mt-4 text-[18px] font-semibold tracking-tight">{area.name}</h3>
               <p className="relative mt-0.5 text-[13px] muted tabular-nums">
-                {s.active} {s.active === 1 ? 'tarea activa' : 'tareas activas'} · {s.goals.length} {s.goals.length === 1 ? 'objetivo' : 'objetivos'}
+                {s.active} {s.active === 1 ? 'tarea activa' : 'tareas activas'}
+                {f.goals && ` · ${s.goals.length} ${s.goals.length === 1 ? 'objetivo' : 'objetivos'}`}
               </p>
               <div className="relative mt-4">
                 <ProgressBar value={s.pct} color={area.color} height={5} />
               </div>
+              {f.milestones && (
               <div className="relative mt-3 flex items-center gap-1.5 text-[12px]">
                 <Flag size={12} style={{ color: area.color }} className="shrink-0" />
                 {s.nextMilestone ? (
@@ -66,6 +70,7 @@ export default function AreasView() {
                   <span className="faint">Sin hitos próximos</span>
                 )}
               </div>
+              )}
             </button>
           );
         })}
@@ -81,6 +86,7 @@ export default function AreasView() {
 }
 
 function AreaDetail({ areaId, onClose, today }) {
+  const f = useFeatures();
   const { state } = useStore();
   const { openEditor } = useUI();
   const area = state.areas.find((a) => a.id === areaId);
@@ -92,7 +98,7 @@ function AreaDetail({ areaId, onClose, today }) {
   const milestones = state.milestones.filter((m) => m.areaId === areaId && m.date >= today).sort((a, b) => a.date.localeCompare(b.date));
 
   return (
-    <section className="glass rounded-[28px] p-5 animate-pop-in" key={areaId}>
+    <section className="glass rounded-[calc(28px*var(--rk))] p-5 animate-pop-in" key={areaId}>
       <div className="mb-5 flex items-center gap-3">
         <AreaIcon area={area} size={18} box={38} />
         <div className="min-w-0 flex-1">
@@ -131,6 +137,7 @@ function AreaDetail({ areaId, onClose, today }) {
         </div>
 
         <div className="space-y-5">
+          {f.goals && (
           <div>
             <p className="eyebrow mb-2 flex items-center gap-1.5">
               <Target size={12} /> Objetivos
@@ -154,6 +161,8 @@ function AreaDetail({ areaId, onClose, today }) {
               </div>
             )}
           </div>
+          )}
+          {f.milestones && (
           <div>
             <p className="eyebrow mb-2 flex items-center gap-1.5">
               <Flag size={12} /> Próximos hitos
@@ -172,6 +181,7 @@ function AreaDetail({ areaId, onClose, today }) {
               </div>
             )}
           </div>
+          )}
         </div>
       </div>
     </section>

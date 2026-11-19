@@ -1,4 +1,4 @@
-import { Search, Moon, MoonStar, Sun, Sunrise, Sunset } from 'lucide-react';
+import { Search, Palette, Moon, MoonStar, Sun, Sunrise, Sunset } from 'lucide-react';
 import { useMemo } from 'react';
 import { useStore } from '../store/AppStore';
 import { useUI } from '../store/ui';
@@ -9,7 +9,9 @@ import { useAuth } from '../store/auth';
 import Avatar from './Avatar';
 import SyncBadge from './SyncBadge';
 import { useNow } from '../lib/hooks';
-import { ThemeOrbs } from './ThemePicker';
+import { useFeatures } from '../lib/features';
+import { cx } from '../lib/utils';
+import { shortGreeting } from '../lib/greetings';
 import { NAV } from './Navigation';
 import { ProgressRing } from './primitives';
 
@@ -20,14 +22,18 @@ export default function Header() {
   const now = useNow();
   const current = NAV.find((n) => n.id === view);
   const progress = dayProgress(state);
+  const f = useFeatures();
   const name = user?.name || '';
   const band = dayBand(now);
   const allDone = progress.total > 0 && progress.done === progress.total;
   // Se recalcula al cambiar de franja, de persona o al completar el día (no cada minuto)
   const message = useMemo(
-    () => personalGreeting({ name, date: now, progress: allDone ? progress : undefined }),
+    () =>
+      f.greetings
+        ? personalGreeting({ name, date: now, progress: allDone ? progress : undefined })
+        : `${shortGreeting(now)}${name ? `, ${name}` : ''}`,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [name, band, allDone, toKey(now)],
+    [name, band, allDone, toKey(now), f.greetings],
   );
   const BandIcon = { madrugada: MoonStar, temprano: Sunrise, manana: Sun, mediodia: Sun, tarde: Sunset, noche: Moon }[band];
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
@@ -41,9 +47,9 @@ export default function Header() {
       <div className="flex items-end justify-between gap-3 pb-4 pt-1">
         <div className="min-w-0">
           <h1 className="flex items-baseline gap-2.5 text-[30px] font-bold leading-tight tracking-tight md:text-[34px]">
-            <span className="truncate md:hidden">{current?.label}</span>
+            <span className="shrink-0 md:hidden">{current?.label}</span>
             <span className="hidden truncate md:inline">{current?.long}</span>
-            <span className="shrink-0 whitespace-nowrap text-[13px] font-medium tracking-normal tabular-nums muted md:text-[14px]">
+            <span className="min-w-0 truncate whitespace-nowrap text-[13px] font-medium tracking-normal tabular-nums muted md:text-[14px]">
               <span className="md:hidden">
                 {formatWeekdayShort(toKey(now))} {formatShortDate(toKey(now))}
               </span>
@@ -54,7 +60,7 @@ export default function Header() {
 
         <div className="flex shrink-0 items-center gap-1.5 md:gap-2">
           {/* Mini anillo de progreso del día (solo iPhone, donde no hay sidebar) */}
-          <div className="mr-1 md:hidden" title={`Progreso de hoy: ${progress.pct}%`}>
+          <div className={cx('mr-1 md:hidden', !f.progress && '!hidden')} title={`Progreso de hoy: ${progress.pct}%`}>
             <ProgressRing value={progress.pct} size={34} stroke={4}>
               <span className="text-[9px] font-bold tabular-nums">{progress.pct}</span>
             </ProgressRing>
@@ -71,9 +77,9 @@ export default function Header() {
               {isMac ? '⌘K' : 'Ctrl K'}
             </kbd>
           </button>
-          <div className="hidden lg:block">
-            <ThemeOrbs />
-          </div>
+          <button type="button" onClick={() => setSettings('appearance')} className="icon-btn !w-9 muted !hidden md:!inline-flex" aria-label="Apariencia y temas" title="Apariencia y temas">
+            <Palette size={18} />
+          </button>
           <SyncBadge />
           <button type="button" onClick={() => setSettings(true)} className="icon-btn" aria-label={`Cuenta y ajustes de ${name}`} title="Cuenta y ajustes">
             <Avatar name={name} size={38} />

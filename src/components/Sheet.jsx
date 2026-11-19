@@ -102,7 +102,7 @@ export default function Sheet({ open, onClose, title, subtitle, children, footer
         ref={panelRef}
         className={cx(
           'glass-strong relative flex w-full flex-col overflow-hidden',
-          'rounded-t-[28px] md:rounded-[28px]',
+          'rounded-t-[calc(28px*var(--rk))] md:rounded-[calc(28px*var(--rk))]',
           maxW,
           !closing && (isDesktop ? 'animate-pop-in' : 'animate-sheet-up'),
         )}

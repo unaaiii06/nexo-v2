@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom';
 import { Search, CheckSquare, Target, Flag, Repeat, LayoutGrid, CornerDownLeft, Plus, ArrowRight } from 'lucide-react';
 import { useStore } from '../store/AppStore';
 import { useUI } from '../store/ui';
-import { NAV } from './Navigation';
+import { visibleNav } from './Navigation';
 import { relativeDay, formatShortDate } from '../lib/dates';
+import { useFeatures } from '../lib/features';
 import { cx } from '../lib/utils';
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -29,6 +30,7 @@ export default function Spotlight() {
 
 function SpotlightPanel({ onClose }) {
   const { state, actions } = useStore();
+  const f = useFeatures();
   const { setView, openEditor, showToast } = useUI();
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
@@ -46,7 +48,7 @@ function SpotlightPanel({ onClose }) {
   const results = useMemo(() => {
     const n = norm(q.trim());
     const items = [];
-    const nav = NAV.filter((v) => !n || norm(v.long).includes(n)).map((v) => ({
+    const nav = visibleNav(f).filter((v) => !n || norm(v.long).includes(n)).map((v) => ({
       key: `nav_${v.id}`, group: 'Ir a', icon: v.icon, title: v.long, run: () => setView(v.id, { area: null }),
     }));
     if (!n) return nav;
@@ -70,20 +72,20 @@ function SpotlightPanel({ onClose }) {
           run: () => openEditor('task', t),
         }),
       );
-    state.goals.filter((g) => norm(g.title).includes(n)).forEach((g) =>
+    (f.goals ? state.goals : []).filter((g) => norm(g.title).includes(n)).forEach((g) =>
       items.push({ key: g.id, group: 'Objetivos', icon: Target, title: g.title, run: () => openEditor('goal', g) }),
     );
-    state.milestones.filter((m) => norm(m.title).includes(n)).forEach((m) =>
+    (f.milestones ? state.milestones : []).filter((m) => norm(m.title).includes(n)).forEach((m) =>
       items.push({ key: m.id, group: 'Hitos', icon: Flag, title: m.title, hint: formatShortDate(m.date), run: () => openEditor('milestone', m) }),
     );
-    state.habits.filter((h) => norm(h.name).includes(n)).forEach((h) =>
+    (f.habits ? state.habits : []).filter((h) => norm(h.name).includes(n)).forEach((h) =>
       items.push({ key: h.id, group: 'Hábitos', icon: Repeat, title: h.name, run: () => openEditor('habit', h) }),
     );
     state.areas.filter((a) => norm(a.name).includes(n)).forEach((a) =>
       items.push({ key: a.id, group: 'Áreas', icon: LayoutGrid, title: a.name, run: () => setView('areas', { area: a.id }) }),
     );
     return items;
-  }, [q, state, actions, setView, openEditor, showToast]);
+  }, [q, state, f, actions, setView, openEditor, showToast]);
 
   useEffect(() => setSel(0), [q]);
   useEffect(() => {
@@ -116,7 +118,7 @@ function SpotlightPanel({ onClose }) {
   return createPortal(
     <div className="fixed inset-0 z-[70] flex justify-center px-3 pt-[max(12px,env(safe-area-inset-top))] md:px-6 md:pt-[14vh]">
       <div className="absolute inset-0 animate-fade-in" style={{ background: 'var(--scrim)' }} onClick={onClose} />
-      <div className="glass-strong relative flex max-h-[min(70vh,560px)] w-full max-w-xl flex-col overflow-hidden rounded-[22px] animate-pop-in" role="dialog" aria-label="Buscar">
+      <div className="glass-strong relative flex max-h-[min(70vh,560px)] w-full max-w-xl flex-col overflow-hidden rounded-[calc(22px*var(--rk))] animate-pop-in" role="dialog" aria-label="Buscar">
         <div className="flex items-center gap-3 border-b px-4 hairline">
           <Search size={20} className="shrink-0 muted" />
           <input

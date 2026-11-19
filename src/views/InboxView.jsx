@@ -5,6 +5,7 @@ import { useUI } from '../store/ui';
 import { inboxTasks } from '../store/selectors';
 import TaskRow from '../components/TaskRow';
 import { EmptyState } from '../components/primitives';
+import { useFeatures } from '../lib/features';
 import { PRIORITIES, cx, haptic } from '../lib/utils';
 
 const WHEN = [
@@ -49,7 +50,7 @@ export default function InboxView() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       {/* Input hero estilo Spotlight */}
-      <form onSubmit={capture} className="glass flex items-center gap-3 rounded-[22px] py-2 pl-5 pr-2 animate-fade-up">
+      <form onSubmit={capture} className="glass flex items-center gap-3 rounded-[calc(22px*var(--rk))] py-2 pl-5 pr-2 animate-fade-up">
         <Sparkles size={20} className="shrink-0 text-accent" />
         <input
           ref={inputRef}
@@ -78,7 +79,7 @@ export default function InboxView() {
       </div>
 
       {items.length === 0 ? (
-        <div className="glass rounded-[28px]">
+        <div className="glass rounded-[calc(28px*var(--rk))]">
           <EmptyState
             icon={Inbox}
             title="Bandeja vacía"
@@ -90,7 +91,7 @@ export default function InboxView() {
           {items.map((task) => (
             <li
               key={task.id}
-              className={cx('glass rounded-[22px] p-2', leaving[task.id] ? 'animate-leave' : task.id === fresh ? 'animate-pop-in' : 'animate-fade-up')}
+              className={cx('glass rounded-[calc(22px*var(--rk))] p-2', leaving[task.id] ? 'animate-leave' : task.id === fresh ? 'animate-pop-in' : 'animate-fade-up')}
             >
               <TaskRow task={task} className="!border-0 !bg-transparent !shadow-none" />
               <ProcessBar task={task} onSchedule={(w) => schedule(task, w)} />
@@ -103,6 +104,7 @@ export default function InboxView() {
 }
 
 function ProcessBar({ task, onSchedule }) {
+  const f = useFeatures();
   const { state, actions } = useStore();
   return (
     <div className="space-y-2 px-2 pb-1.5 pt-1">
@@ -114,7 +116,7 @@ function ProcessBar({ task, onSchedule }) {
           </button>
         ))}
         <span className="mx-0.5 hidden w-px shrink-0 self-stretch sm:block" style={{ background: 'var(--hairline)' }} />
-        {Object.entries(PRIORITIES).map(([k, p]) => (
+        {f.priorities && Object.entries(PRIORITIES).map(([k, p]) => (
           <button
             key={k}
             type="button"
@@ -127,7 +129,7 @@ function ProcessBar({ task, onSchedule }) {
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className={cx('grid gap-2', f.goals ? 'grid-cols-2' : 'grid-cols-1')}>
         <select
           className="field !min-h-[40px] !rounded-full !py-1.5 !text-[14px]"
           value={task.areaId || ''}
@@ -141,6 +143,7 @@ function ProcessBar({ task, onSchedule }) {
             </option>
           ))}
         </select>
+        {f.goals && (
         <label className="relative block">
           <Target size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 muted" />
           <select
@@ -161,6 +164,7 @@ function ProcessBar({ task, onSchedule }) {
             ))}
           </select>
         </label>
+        )}
       </div>
     </div>
   );

@@ -8,9 +8,11 @@ import { useToday } from '../lib/hooks';
 import { cx, DAY_CAPACITY_MIN, haptic } from '../lib/utils';
 import TaskRow from '../components/TaskRow';
 import { ProgressBar, ProgressRing } from '../components/primitives';
+import { useFeatures } from '../lib/features';
 import WeeklyReview from './WeeklyReview';
 
 export default function WeekView() {
+  const f = useFeatures();
   const { state } = useStore();
   const { setReview } = useUI();
   const today = useToday();
@@ -40,7 +42,7 @@ export default function WeekView() {
   return (
     <div className="space-y-4">
       {/* Cabecera de la semana */}
-      <section className="glass flex flex-wrap items-center gap-4 rounded-[28px] p-4 md:p-5">
+      <section className="glass flex flex-wrap items-center gap-4 rounded-[calc(28px*var(--rk))] p-4 md:p-5">
         <ProgressRing value={progress.pct} size={64} stroke={7}>
           <span className="text-[14px] font-bold tabular-nums">{progress.pct}%</span>
         </ProgressRing>
@@ -66,13 +68,15 @@ export default function WeekView() {
             {progress.done} de {progress.total} tareas completadas
           </p>
         </div>
+        {f.weeklyReview && (
         <button type="button" onClick={() => setReview(true)} className="btn btn-primary w-full sm:w-auto">
           <Wand2 size={17} /> Revisión semanal
         </button>
+        )}
       </section>
 
       {/* Enfoque de la semana */}
-      <FocusBanner monday={monday} focus={focus} />
+      {f.weekFocus && <FocusBanner monday={monday} focus={focus} />}
 
       {/* Kanban de 7 columnas: carrusel con scroll-snap en móvil */}
       <div
@@ -86,7 +90,7 @@ export default function WeekView() {
       </div>
 
       {/* Backlog semanal */}
-      <section className="glass rounded-[28px] p-5">
+      <section className="glass rounded-[calc(28px*var(--rk))] p-5">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-accent/15 text-accent">
@@ -122,7 +126,7 @@ function FocusBanner({ monday, focus }) {
   useEffect(() => setText(focus || ''), [focus, monday]);
 
   return (
-    <section className="relative overflow-hidden rounded-[22px] p-4 card" style={{ background: 'linear-gradient(120deg, rgb(var(--accent) / 0.14), rgb(var(--accent-2) / 0.1))' }}>
+    <section className="relative overflow-hidden rounded-[calc(22px*var(--rk))] p-4 card" style={{ background: 'linear-gradient(120deg, rgb(var(--accent) / 0.14), rgb(var(--accent-2) / 0.1))' }}>
       <div className="flex items-start gap-3">
         <Compass size={20} className="mt-0.5 shrink-0 text-accent" />
         <div className="min-w-0 flex-1">
@@ -156,6 +160,7 @@ function FocusBanner({ monday, focus }) {
 }
 
 function DayColumn({ date, today, monday }) {
+  const f = useFeatures();
   const { state } = useStore();
   const { openEditor } = useUI();
   const list = sortTasks(tasksOn(state, date));
@@ -166,7 +171,7 @@ function DayColumn({ date, today, monday }) {
 
   return (
     <section
-      className={cx('glass flex snap-start flex-col rounded-[24px] p-3', isToday && 'ring-1 ring-accent/50', isPast && 'opacity-80')}
+      className={cx('glass flex snap-start flex-col rounded-[calc(24px*var(--rk))] p-3', isToday && 'ring-1 ring-accent/50', isPast && 'opacity-80')}
       aria-label={formatWeekdayShort(date)}
     >
       <header className="mb-3 px-1">
@@ -174,12 +179,13 @@ function DayColumn({ date, today, monday }) {
           <div className="flex items-baseline gap-2">
             <span className={cx('text-[26px] font-bold leading-none tracking-tight tabular-nums', isToday && 'text-accent')}>{fromKey(date).getDate()}</span>
             <span className="text-[14px] font-semibold muted">{formatWeekdayShort(date)}</span>
-            {isToday && <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">Hoy</span>}
+            {isToday && <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-on-accent">Hoy</span>}
           </div>
           <button type="button" className="icon-btn !h-9 !w-9 muted" onClick={() => openEditor('task', null, { date })} aria-label="Añadir tarea a este día">
             <Plus size={17} />
           </button>
         </div>
+        {f.workload && f.estimates && (
         <div className="mt-2.5">
           <ProgressBar value={Math.min(100, load.ratio * 100)} level={load.level} height={4} />
           <p className={cx('mt-1 text-[11px] font-medium tabular-nums', load.level === 'over' ? 'text-danger' : load.level === 'high' ? 'text-warn' : 'faint')}>
@@ -187,6 +193,7 @@ function DayColumn({ date, today, monday }) {
             {load.level === 'over' ? ' · saturado' : load.level === 'high' ? ' · casi lleno' : ''}
           </p>
         </div>
+        )}
       </header>
       <div className="flex-1 space-y-2">
         {list.length === 0 && <p className="rounded-2xl border border-dashed py-6 text-center text-[13px] faint hairline">Día libre</p>}
@@ -240,7 +247,7 @@ function MovableTask({ task, days }) {
                 onClick={() => move(d, `Movida al ${formatWeekdayShort(d).toLowerCase()} ${fromKey(d).getDate()}`)}
                 className={cx(
                   'flex h-11 flex-col items-center justify-center rounded-xl text-[11px] font-semibold transition-colors active:scale-95',
-                  i === idx ? 'bg-accent text-white' : 'hover:bg-fg/10',
+                  i === idx ? 'bg-accent text-on-accent' : 'hover:bg-fg/10',
                 )}
                 style={i === idx ? undefined : { background: 'var(--field)' }}
                 aria-label={`Mover al ${formatWeekdayShort(d)}`}

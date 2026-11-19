@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useStore } from './store/AppStore';
 import { useUI } from './store/ui';
 import { applyTheme } from './lib/themes';
+import { useFeatures } from './lib/features';
 import { cx } from './lib/utils';
 import { Sidebar, TabBar } from './components/Navigation';
 import Header from './components/Header';
@@ -30,15 +31,16 @@ export default function App() {
 
   // Motor de temas: data-theme + meta theme-color
   useEffect(() => {
-    applyTheme(state.settings.theme);
-    try {
-      localStorage.setItem('nexo2:theme', state.settings.theme);
-    } catch {
-      /* sin acceso */
-    }
-  }, [state.settings.theme]);
+    applyTheme(state.settings.theme, state.settings.custom);
+  }, [state.settings.theme, state.settings.custom]);
 
-  const View = VIEWS[view] || TodayView;
+  const f = useFeatures();
+  // Si el apartado actual se desactiva en Ajustes, se muestra «Hoy»
+  const View = view === 'today' || f[view] ? VIEWS[view] || TodayView : TodayView;
+
+  useEffect(() => {
+    document.documentElement.dataset.celebrate = f.animations ? 'on' : 'off';
+  }, [f.animations]);
 
   return (
     <>

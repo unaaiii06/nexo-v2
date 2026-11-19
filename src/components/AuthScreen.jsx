@@ -58,9 +58,9 @@ export default function AuthScreen() {
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto px-5 py-10">
       <div className="ambient" aria-hidden="true" />
-      <form onSubmit={submit} className="glass-strong relative w-full max-w-md rounded-[32px] p-7 animate-pop-in">
+      <form onSubmit={submit} className="glass-strong relative w-full max-w-md rounded-[calc(32px*var(--rk))] p-7 animate-pop-in">
         <div className="text-center">
-          <img src="./icon.svg" alt="" width={64} height={64} className="mx-auto rounded-[16px] shadow-xl" />
+          <img src="./icon.svg" alt="" width={64} height={64} className="mx-auto rounded-[calc(16px*var(--rk))] shadow-xl" />
           <p className="mt-5 text-[15px] muted">{shortGreeting()}</p>
           <h1 className="mt-1 text-[28px] font-bold leading-tight tracking-tight">{mode === 'login' ? 'Entra en Nexo' : 'Crea tu cuenta'}</h1>
           <p className="mx-auto mt-1.5 max-w-[300px] text-[14px] muted">
