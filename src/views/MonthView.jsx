@@ -7,13 +7,15 @@ import {
   addMonths, formatMonthYear, formatLongDate, formatShortDate, fromKey, monthDays, monthKeyOf, monthMatrix, WEEKDAY_SHORT, WEEKDAY_INITIALS, diffDays,
 } from '../lib/dates';
 import { useToday } from '../lib/hooks';
-import { cx, haptic, MILESTONE_TYPES } from '../lib/utils';
+import { cx, haptic, MILESTONE_TYPES, milestoneType } from '../lib/utils';
+import { formatRemind, nextRemind } from '../lib/reminders';
+import { BellRing } from 'lucide-react';
 import { AreaBadge, EmptyState, ProgressBar, SectionTitle } from '../components/primitives';
 import { HABIT_ICONS, iconFor } from '../components/icons';
 import { useFeatures } from '../lib/features';
 import Sheet from '../components/Sheet';
 
-const typeColor = (m, area) => area?.color || (m.type === 'limite' ? '#FF453A' : '#0A84FF');
+const typeColor = (m, area) => area?.color || MILESTONE_TYPES[milestoneType(m)].color;
 
 export default function MonthView() {
   const f = useFeatures();
@@ -52,7 +54,7 @@ function CalendarCard({ month, setMonth, today, onSelect, wide }) {
           </span>
           <div>
             <h2 className="text-[19px] font-semibold tracking-tight">{formatMonthYear(month)}</h2>
-            <p className="text-[13px] muted">{count} hitos y fechas clave</p>
+            <p className="text-[13px] muted">{count} entregas y eventos</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -117,7 +119,7 @@ function CalendarCard({ month, setMonth, today, onSelect, wide }) {
                       key={m.id}
                       className="block truncate rounded-md px-1.5 py-[3px] text-[11px] font-semibold leading-tight"
                       style={{ color: c, background: `color-mix(in srgb, ${c} 16%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${c} 26%, transparent)` }}
-                      title={`${MILESTONE_TYPES[m.type]?.label}: ${m.title}`}
+                      title={`${MILESTONE_TYPES[milestoneType(m)].label}: ${m.title}`}
                     >
                       {m.title}
                     </span>
@@ -129,7 +131,7 @@ function CalendarCard({ month, setMonth, today, onSelect, wide }) {
           );
         })}
       </div>
-      <p className="mt-3 text-[12px] faint">Solo hitos, entregas, eventos clave y fechas límite. Toca un día para ver o añadir.</p>
+      <p className="mt-3 text-[12px] faint">Solo entregas y eventos. Toca un día para verlos o añadir uno.</p>
     </section>
   );
 }
@@ -159,7 +161,13 @@ function DaySheet({ date, onClose }) {
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold">{m.title}</span>
                 <span className="flex items-center gap-2 text-[12px] muted">
-                  {MILESTONE_TYPES[m.type]?.label}
+                  {MILESTONE_TYPES[milestoneType(m)].label}
+                  {m.start && <span className="tabular-nums">· {m.start}</span>}
+                  {nextRemind(m) && (
+                    <span className="inline-flex items-center gap-1 text-accent">
+                      <BellRing size={11} /> {formatRemind(nextRemind(m))}
+                    </span>
+                  )}
                   <AreaBadge area={area} />
                 </span>
               </span>

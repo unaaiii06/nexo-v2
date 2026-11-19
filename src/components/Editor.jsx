@@ -6,7 +6,7 @@ import { useStore } from '../store/AppStore';
 import { useUI } from '../store/ui';
 import { goalProgress, goalsOfMonth } from '../store/selectors';
 import { addDays, addMonths, monthKeyOf, startOfWeek, todayKey, formatMonthYear, timeToMinutes, minutesToTime } from '../lib/dates';
-import { AREA_COLORS, MILESTONE_TYPES, PRIORITIES, cx } from '../lib/utils';
+import { AREA_COLORS, MILESTONE_TYPES, PRIORITIES, cx, milestoneType } from '../lib/utils';
 import { HABIT_ICONS } from './icons';
 import { useFeatures } from '../lib/features';
 import { REMIND_OPTIONS, MAX_REMINDS, computeOne, computeRemindAts, getReminds, sameRemind, toLocalInput, formatRemind } from '../lib/reminders';
@@ -58,7 +58,7 @@ function defaultsFor(type, defaults) {
       return { title: '', date: today, start: minutesToTime(h * 60), end: minutesToTime(h * 60 + 60), areaId: null, ...defaults };
     }
     case 'milestone':
-      return { title: '', date: addDays(today, 7), type: 'hito', areaId: null, ...defaults };
+      return { title: '', date: addDays(today, 7), type: 'evento', start: null, areaId: null, ...defaults };
     case 'goal':
       return { title: '', areaId: null, deadline: addDays(today, 21), month: monthKeyOf(today), ...defaults };
     case 'habit':
@@ -113,7 +113,7 @@ function EditorInner({ editor, onClose }) {
     if (type === 'event' && timeToMinutes(data.end) <= timeToMinutes(data.start)) {
       data.end = minutesToTime(Math.min(23 * 60 + 59, timeToMinutes(data.start) + 30));
     }
-    if (type === 'task' || type === 'event') {
+    if (type === 'task' || type === 'event' || type === 'milestone') {
       // Hora exacta del aviso por Telegram (la lee el servidor)
       // Se quitan los avisos que no se pueden calcular (p. ej. «a la hora» sin hora)
       const reminds = getReminds(data).filter((x) => computeOne(data, x));
@@ -368,8 +368,8 @@ function TaskFields({ draft, set, state }) {
 }
 
 /** Avisos por Telegram: se pueden combinar varios (hasta 5) */
-function RemindField({ draft, set }) {
-  const opts = draft.date && draft.start ? REMIND_OPTIONS.withStart : draft.date ? REMIND_OPTIONS.dayOnly : [];
+function RemindField({ draft, set, extra = [] }) {
+  const opts = [...extra, ...(draft.date && draft.start ? REMIND_OPTIONS.withStart : draft.date ? REMIND_OPTIONS.dayOnly : [])];
   const reminds = getReminds(draft);
   const presets = reminds.filter((x) => x.mode !== 'custom');
   const customs = reminds.filter((x) => x.mode === 'custom');
@@ -381,7 +381,7 @@ function RemindField({ draft, set }) {
   const toggle = (o) => {
     const on = presets.some((x) => sameRemind(x, o));
     if (on) update(reminds.filter((x) => !sameRemind(x, o)));
-    else if (!full) update([...reminds, { mode: o.mode, minutes: o.minutes, time: o.time }]);
+    else if (!full) update([...reminds, { mode: o.mode, minutes: o.minutes, time: o.time, days: o.days }]);
   };
   const addCustom = () => {
     if (full) return;
@@ -479,23 +479,32 @@ function EventFields({ draft, set, state }) {
 }
 
 function MilestoneFields({ draft, set, state }) {
+  const f = useFeatures();
+  const kind = milestoneType(draft);
   return (
     <>
-      <Field label="Tipo" hint="El calendario mensual solo muestra hitos, entregas, eventos clave y fechas límite.">
+      <Field label="Tipo" hint="El calendario del mes solo muestra entregas y eventos, nunca tareas pequeñas.">
         <div className="flex flex-wrap gap-2">
           {Object.entries(MILESTONE_TYPES).map(([k, m]) => (
-            <button key={k} type="button" onClick={() => set({ type: k })} className={cx('chip', draft.type === k && 'chip-active')}>
+            <button key={k} type="button" onClick={() => set({ type: k })} className={cx('chip', kind === k && 'chip-active')}>
+              <span className="h-2 w-2 rounded-full" style={{ background: m.color }} />
               {m.label}
             </button>
           ))}
         </div>
       </Field>
-      <Field label="Fecha">
-        <input type="date" className="field" value={draft.date || ''} onChange={(e) => set({ date: e.target.value || todayKey() })} />
-      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Fecha">
+          <input type="date" className="field" value={draft.date || ''} onChange={(e) => set({ date: e.target.value || todayKey() })} />
+        </Field>
+        <Field label="Hora (opcional)">
+          <input type="time" className="field tabular-nums" value={draft.start || ''} onChange={(e) => set({ start: e.target.value || null })} />
+        </Field>
+      </div>
       <Field label="Área">
         <AreaSelect value={draft.areaId} onChange={(areaId) => set({ areaId })} state={state} />
       </Field>
+      {f.reminders && <RemindField draft={draft} set={set} extra={REMIND_OPTIONS.milestone} />}
     </>
   );
 }

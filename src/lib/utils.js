@@ -35,11 +35,16 @@ export const PRIORITIES = {
 export const AREA_COLORS = ['#0A84FF', '#BF5AF2', '#30D158', '#FFD60A', '#FF9F0A', '#FF375F', '#64D2FF', '#5E5CE6'];
 
 export const MILESTONE_TYPES = {
-  hito: { label: 'Hito' },
-  entrega: { label: 'Entrega' },
-  evento: { label: 'Evento' },
-  limite: { label: 'Fecha límite' },
+  entrega: { label: 'Entrega', color: '#FF9F0A' },
+  evento: { label: 'Evento', color: '#0A84FF' },
 };
+
+/** Tipo de un hito (los antiguos «Fecha límite» pasan a Entrega y «Hito» a Evento) */
+export function milestoneType(m) {
+  const t = m?.type;
+  if (t === 'entrega' || t === 'limite') return 'entrega';
+  return 'evento';
+}
 
 export const DAY_CAPACITY_MIN = 6 * 60; // capacidad diaria planificable
 export const DEFAULT_ESTIMATE = 30;

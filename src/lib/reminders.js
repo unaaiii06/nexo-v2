@@ -14,6 +14,11 @@ export const REMIND_OPTIONS = {
     { mode: 'before', minutes: 60, label: '1 h antes' },
     { mode: 'before', minutes: 1440, label: '1 día antes' },
   ],
+  // Solo hitos (entregas y eventos): con antelación
+  milestone: [
+    { mode: 'daysBefore', days: 7, time: '09:00', label: '1 semana antes' },
+    { mode: 'daysBefore', days: 3, time: '09:00', label: '3 días antes' },
+  ],
   dayOnly: [
     { mode: 'dayBefore', time: '20:00', label: 'La víspera a las 20:00' },
     { mode: 'time', time: '09:00', label: 'A las 9:00' },
@@ -48,6 +53,9 @@ export function computeOne(item, r) {
   else if (r.mode === 'dayBefore') {
     d = at(item.date, r.time);
     if (d) d.setDate(d.getDate() - 1);
+  } else if (r.mode === 'daysBefore') {
+    d = at(item.date, r.time || '09:00');
+    if (d) d.setDate(d.getDate() - (r.days || 1));
   }
   return d && !Number.isNaN(d.getTime()) ? d.toISOString() : null;
 }
@@ -69,7 +77,12 @@ export function upcomingCount(item, now = Date.now()) {
 }
 
 export function sameRemind(a, b) {
-  return a?.mode === b?.mode && (a?.minutes ?? null) === (b?.minutes ?? null) && (a?.time ?? null) === (b?.time ?? null);
+  return (
+    a?.mode === b?.mode &&
+    (a?.minutes ?? null) === (b?.minutes ?? null) &&
+    (a?.time ?? null) === (b?.time ?? null) &&
+    (a?.days ?? null) === (b?.days ?? null)
+  );
 }
 
 /** "YYYY-MM-DDTHH:MM" local para <input type="datetime-local"> */

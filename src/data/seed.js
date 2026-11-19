@@ -144,10 +144,10 @@ export function createSeed() {
     { id: id('ms'), title: 'Revisión médica anual', date: addDays(today, -4), type: 'evento', areaId: 'area_salud' },
     { id: id('ms'), title: 'Demo interna de Atlas', date: laterThisWeek(2), type: 'evento', areaId: 'area_trabajo' },
     { id: id('ms'), title: 'Cumpleaños de Lucía', date: addDays(today, 3), type: 'evento', areaId: 'area_personal' },
-    { id: id('ms'), title: 'Pago del IVA trimestral', date: addDays(today, 5), type: 'limite', areaId: 'area_finanzas' },
+    { id: id('ms'), title: 'Pago del IVA trimestral', date: addDays(today, 5), type: 'entrega', areaId: 'area_finanzas' },
     { id: id('ms'), title: 'Borrador del TFM', date: addDays(today, 9), type: 'entrega', areaId: 'area_estudios' },
     { id: id('ms'), title: 'Carrera popular 10K', date: addDays(today, 12), type: 'evento', areaId: 'area_salud' },
-    { id: id('ms'), title: 'Lanzamiento beta de Atlas', date: goalDeadline, type: 'hito', areaId: 'area_trabajo' },
+    { id: id('ms'), title: 'Lanzamiento beta de Atlas', date: goalDeadline, type: 'evento', areaId: 'area_trabajo' },
   ];
 
   const habits = [

@@ -123,7 +123,7 @@ async function onCallback(db: Any, cb: Any) {
     .select('collection, data')
     .eq('user_id', userId)
     .eq('id', itemId)
-    .in('collection', ['tasks', 'events'])
+    .in('collection', ['tasks', 'events', 'milestones'])
     .eq('deleted', false)
     .maybeSingle();
   if (!row) {

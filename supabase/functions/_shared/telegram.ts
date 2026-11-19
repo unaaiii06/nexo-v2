@@ -54,6 +54,16 @@ export function reminderKeyboard(itemId: string, collection: string) {
 
 // deno-lint-ignore no-explicit-any
 export function describeItem(collection: string, data: any, tz: string, remindAt?: string) {
+  if (collection === 'milestones') {
+    const entrega = data?.type === 'entrega' || data?.type === 'limite';
+    const lines = [`${entrega ? '📦 <b>Entrega</b>' : '🎉 <b>Evento</b>'}: <b>${esc(data?.title)}</b>`];
+    if (data?.date) {
+      const [y, m, d] = String(data.date).split('-').map(Number);
+      const day = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m - 1, d, 12)));
+      lines.push(`📅 ${esc(day)}${data.start ? ` · ${esc(data.start)}` : ''}`);
+    }
+    return lines.join('\n');
+  }
   const icon = collection === 'events' ? '🗓' : PRIORITY[data?.priority] ?? '🔔';
   const lines = [`${icon} <b>${esc(data?.title)}</b>`];
   if (data?.start) lines.push(`🕒 ${esc(data.start)}${data.end ? `–${esc(data.end)}` : ''}`);

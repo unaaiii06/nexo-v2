@@ -19,7 +19,7 @@ export const emptySync = () => ({ outbox: {}, cursor: 0, initialized: false });
 
 /** Recalcula la hora de aviso si cambió la fecha u hora de una tarea/bloque */
 function refreshReminders(prev, next) {
-  for (const c of ['tasks', 'events']) {
+  for (const c of ['tasks', 'events', 'milestones']) {
     if (prev[c] === next[c]) continue;
     const before = new Map(prev[c].map((x) => [x.id, x]));
     let changed = false;

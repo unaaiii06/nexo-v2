@@ -17,7 +17,7 @@ export const FEATURE_GROUPS = [
     items: [
       { key: 'habits', label: 'Hábitos', text: 'Rastreador diario, rachas y matriz mensual' },
       { key: 'goals', label: 'Objetivos del mes', text: 'OKRs con progreso automático' },
-      { key: 'milestones', label: 'Hitos y fechas clave', text: 'Entregas, eventos y fechas límite' },
+      { key: 'milestones', label: 'Hitos: entregas y eventos', text: 'Calendario del mes con recordatorios' },
       { key: 'agenda', label: 'Agenda y bloques de tiempo', text: 'Línea de tiempo de 24 horas' },
       { key: 'mits', label: 'Las 3 prioridades del día', text: 'Anillo de MITs en «Hoy»' },
       { key: 'priorities', label: 'Prioridad de tareas', text: 'Alta, media y baja' },

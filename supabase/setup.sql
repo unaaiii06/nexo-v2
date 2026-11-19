@@ -150,7 +150,7 @@ begin
       union
       select (i.data->>'remindAt')::timestamptz where nullif(i.data->>'remindAt', '') is not null
     ) t
-    where i.collection in ('tasks', 'events')
+    where i.collection in ('tasks', 'events', 'milestones')
       and not i.deleted
       and coalesce((i.data->>'done')::boolean, false) = false
       and t.at <= now()
