@@ -16,7 +16,7 @@ export default function TodayView() {
   // Sin agenda, el resto de tarjetas se reparten en dos columnas
   const span = f.agenda ? 'lg:col-span-5' : 'lg:col-span-6';
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-5 stagger">
+    <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12 lg:gap-5 stagger">
       {f.mits && <MitsCard span={span} />}
       {f.agenda && <AgendaCard />}
       {f.habits && <HabitsCard span={span} />}
@@ -41,53 +41,60 @@ function MitsCard({ span }) {
   const done = mits.filter((t) => t.done).length;
   const value = pct(done, 3);
   const all = mits.length > 0 && done === mits.length;
+  const free = 3 - mits.length;
 
   return (
-    <section className={`glass relative overflow-hidden rounded-[calc(28px*var(--rk))] p-5 ${span}`}>
+    <section className={`glass relative overflow-hidden rounded-[calc(24px*var(--rk))] p-4 ${span}`}>
       {/* Brillo sutil */}
       <div
-        className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full opacity-60"
-        style={{ background: 'radial-gradient(closest-side, rgb(var(--accent) / 0.28), transparent)' }}
+        className="pointer-events-none absolute -right-14 -top-16 h-40 w-40 rounded-full opacity-60"
+        style={{ background: 'radial-gradient(closest-side, rgb(var(--accent) / 0.26), transparent)' }}
       />
-      <div className="relative flex items-center gap-5">
-        <ProgressRing value={value} size={104} stroke={11}>
-          <span className="text-[24px] font-bold leading-none tabular-nums">
+      {/* Cabecera compacta: anillo pequeño + título */}
+      <div className="relative flex items-center gap-3">
+        <ProgressRing value={value} size={46} stroke={6}>
+          <span className="text-[13px] font-bold leading-none tabular-nums">
             {done}
-            <span className="text-[15px] font-semibold muted">/3</span>
+            <span className="text-[10px] font-semibold muted">/3</span>
           </span>
-          <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider muted">MITs</span>
         </ProgressRing>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="eyebrow">Las 3 prioridades</p>
-          <h2 className="mt-1 text-[22px] font-semibold leading-tight tracking-tight">
+          <h2 className="truncate text-[17px] font-semibold leading-tight tracking-tight">
             {all ? '¡Día ganado!' : done === 0 ? 'Lo esencial, primero' : 'Vas por buen camino'}
           </h2>
-          <p className="mt-1 text-[13px] muted">
-            {all ? 'Has completado lo más importante de hoy.' : 'Si solo haces esto hoy, el día habrá merecido la pena.'}
-          </p>
         </div>
+        {free > 0 && (
+          <button
+            type="button"
+            onClick={() => openEditor('task', null, { date: today, mit: true, priority: 'high' })}
+            className="icon-btn card shrink-0"
+            aria-label="Añadir prioridad"
+            title={`Añadir prioridad (${free} ${free === 1 ? 'libre' : 'libres'})`}
+          >
+            <Plus size={18} />
+          </button>
+        )}
       </div>
 
-      <div className="relative mt-5 space-y-2">
-        {mits.map((t, i) => (
-          <div key={t.id} className="flex items-center gap-2">
-            <span className="w-4 shrink-0 text-center text-[13px] font-bold tabular-nums faint">{i + 1}</span>
-            <TaskRow task={t} className="flex-1" showGoal />
-          </div>
-        ))}
-        {Array.from({ length: 3 - mits.length }).map((_, i) => (
-          <div key={`empty${i}`} className="flex items-center gap-2">
-            <span className="w-4 shrink-0 text-center text-[13px] font-bold tabular-nums faint">{mits.length + i + 1}</span>
-            <button
-              type="button"
-              onClick={() => openEditor('task', null, { date: today, mit: true, priority: 'high' })}
-              className="pressable flex min-h-[48px] flex-1 items-center gap-2 rounded-2xl border border-dashed px-3 text-[14px] muted hairline"
-            >
-              <Plus size={16} /> Añadir prioridad
-            </button>
-          </div>
-        ))}
-      </div>
+      {mits.length > 0 ? (
+        <div className="relative mt-3 space-y-1.5">
+          {mits.map((t, i) => (
+            <div key={t.id} className="flex items-center gap-1.5">
+              <span className="w-3.5 shrink-0 text-center text-[12px] font-bold tabular-nums faint">{i + 1}</span>
+              <TaskRow task={t} className="flex-1 !py-2" compact showGoal={false} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => openEditor('task', null, { date: today, mit: true, priority: 'high' })}
+          className="pressable relative mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl border border-dashed px-3 text-[14px] muted hairline"
+        >
+          <Plus size={16} /> Elige hasta 3 tareas clave para hoy
+        </button>
+      )}
     </section>
   );
 }
@@ -153,7 +160,7 @@ function AgendaCard() {
   const hours = Array.from({ length: END_H - START_H + 1 }, (_, i) => START_H + i);
 
   return (
-    <section className="glass flex flex-col rounded-[calc(28px*var(--rk))] p-5 lg:col-span-7 lg:row-span-2">
+    <section className="glass flex flex-col rounded-[calc(28px*var(--rk))] p-5 lg:col-span-7 lg:row-span-3">
       <SectionTitle
         icon={Clock3}
         title="Agenda"
@@ -169,7 +176,7 @@ function AgendaCard() {
           </button>
         }
       />
-      <div ref={scrollRef} className="scroll-area relative -mx-2 h-[440px] overflow-y-auto px-2 lg:h-auto lg:min-h-[480px] lg:flex-1">
+      <div ref={scrollRef} className="scroll-area relative -mx-2 h-[440px] overflow-y-auto px-2 lg:h-[min(68vh,640px)]">
         <div className="relative" style={{ height: (END_H - START_H) * HOUR_PX + 16 }}>
           {hours.map((h) => (
             <button
