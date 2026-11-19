@@ -93,10 +93,10 @@ function MitsCard({ span }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* 2. Agenda de bloques de tiempo (08:00 – 22:00)                      */
+/* 2. Agenda de bloques de tiempo (24 horas)                          */
 /* ------------------------------------------------------------------ */
-const START_H = 8;
-const END_H = 22;
+const START_H = 0;
+const END_H = 24;
 const HOUR_PX = 64;
 
 function layoutBlocks(items) {
@@ -157,7 +157,7 @@ function AgendaCard() {
       <SectionTitle
         icon={Clock3}
         title="Agenda"
-        subtitle={`${blocks.length} bloques · ${minutesToTime(START_H * 60)}–${minutesToTime(END_H * 60)}`}
+        subtitle={`${blocks.length} ${blocks.length === 1 ? 'bloque' : 'bloques'} · 24 h`}
         right={
           <button
             type="button"
@@ -176,14 +176,14 @@ function AgendaCard() {
               key={h}
               type="button"
               onClick={() =>
-                h < END_H && openEditor('event', null, { date: today, start: minutesToTime(h * 60), end: minutesToTime(h * 60 + 60) })
+                h < END_H && openEditor('event', null, { date: today, start: minutesToTime(h * 60), end: minutesToTime(Math.min(23 * 60 + 59, h * 60 + 60)) })
               }
               className="absolute left-0 right-0 flex items-start text-left"
               style={{ top: (h - START_H) * HOUR_PX, height: HOUR_PX }}
               aria-label={`Crear bloque a las ${h}:00`}
               tabIndex={h < END_H ? 0 : -1}
             >
-              <span className="w-12 -translate-y-2 text-[11px] font-medium tabular-nums faint">{String(h).padStart(2, '0')}:00</span>
+              <span className="w-12 -translate-y-2 text-[11px] font-medium tabular-nums faint">{String(h % 24).padStart(2, '0')}:00</span>
               <span className="mt-0 h-px flex-1" style={{ background: 'var(--hairline)' }} />
             </button>
           ))}

@@ -54,7 +54,7 @@ function defaultsFor(type, defaults) {
     case 'task':
       return { title: '', notes: '', date: null, weekOf: null, priority: null, mit: false, areaId: null, goalId: null, start: null, end: null, estimate: 30, ...defaults };
     case 'event': {
-      const h = Math.min(21, Math.max(8, new Date().getHours() + 1));
+      const h = Math.min(22, new Date().getHours() + 1);
       return { title: '', date: today, start: minutesToTime(h * 60), end: minutesToTime(h * 60 + 60), areaId: null, ...defaults };
     }
     case 'milestone':
