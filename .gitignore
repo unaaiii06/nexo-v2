@@ -9,3 +9,4 @@ dev-dist
 supabase/.temp
 supabase/.branches
 supabase/cron.generated.sql
+icon-sheet.png

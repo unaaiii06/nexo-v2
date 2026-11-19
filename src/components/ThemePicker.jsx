@@ -3,6 +3,8 @@ import { useStore } from '../store/AppStore';
 import { THEMES, THEME_GROUPS, ACCENTS, FONTS, CORNERS, GLASS, AMBIENT, MOTION, DEFAULT_CUSTOM, swatch } from '../lib/themes';
 import { Segmented } from './primitives';
 import { cx } from '../lib/utils';
+import AppLogo, { useActiveThemeId } from './AppLogo';
+import { Smartphone } from 'lucide-react';
 
 /** Tarjetas de tema con mini‑previsualización */
 export function ThemeCards() {
@@ -48,9 +50,12 @@ export function ThemeCards() {
                       </span>
                     )}
                   </div>
-                  <div className="px-1.5 pb-1 pt-2">
-                    <p className="truncate text-[14px] font-semibold tracking-tight">{t.name}</p>
-                    <p className="truncate text-[12px] muted">{t.hint}</p>
+                  <div className="flex items-center gap-2 px-1.5 pb-1 pt-2">
+                    <AppLogo theme={t.id} size={26} />
+                    <div className="min-w-0">
+                      <p className="truncate text-[14px] font-semibold tracking-tight">{t.name}</p>
+                      <p className="truncate text-[12px] muted">{t.hint}</p>
+                    </div>
                   </div>
                 </button>
               );
@@ -156,6 +161,32 @@ export function Customizer() {
           <RotateCcw size={16} /> Restablecer personalización
         </button>
       )}
+    </div>
+  );
+}
+
+/** Icono de la app del tema actual + cómo ponerlo en la pantalla de inicio */
+export function AppIconCard() {
+  const id = useActiveThemeId();
+  const theme = THEMES.find((t) => t.id === id) || THEMES[0];
+  const standalone = typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone);
+  return (
+    <div className="flex items-center gap-4 rounded-2xl p-4 card">
+      <AppLogo size={76} />
+      <div className="min-w-0 flex-1">
+        <p className="text-[15px] font-semibold">Icono «{theme.name}»</p>
+        <p className="mt-0.5 text-[13px] muted">
+          El logo NE cambia con cada tema dentro de la app y en la pestaña del navegador.
+        </p>
+        <p className="mt-2 flex gap-1.5 text-[12px] faint">
+          <Smartphone size={14} className="mt-[1px] shrink-0" />
+          <span>
+            {standalone
+              ? 'Para cambiar el icono de la pantalla de inicio: elimina el acceso, abre Nexo en Safari con este tema y vuelve a «Añadir a pantalla de inicio».'
+              : 'Si ahora tocas Compartir → «Añadir a pantalla de inicio», tu iPhone usará este icono.'}
+          </span>
+        </p>
+      </div>
     </div>
   );
 }

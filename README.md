@@ -18,6 +18,7 @@ Todo lo demás es igual que en la v1: Bandeja, Hoy, Semana, Mes, Áreas, 4 temas
   - **Oscuros:** Obsidian, Titanium, Océano, Bosque y Grafito.
   - **Vivos (con fondo animado):** Vision, Aurora, Atardecer y Neón Cyber.
   - **Claros:** Alabaster, Cuarzo Rosa, Lavanda y Papel.
+- **Logo «NE»** (la N y la E comparten el trazo central) con una versión para cada tema. Dentro de la app y en la pestaña del navegador cambia al instante; el icono de la pantalla de inicio del iPhone es el del tema activo al «Añadir a pantalla de inicio». Se regeneran con `npm run icons` (`scripts/generate-icons.mjs`).
 - **Personalización encima del tema:** color de acento (12 colores o cualquiera con el selector), tipografía (sistema, redondeada, serif o mono), esquinas, efecto cristal (sólido, cristal o intenso), fondo (liso, luces o animado) y animaciones.
 - **Funciones (Ajustes → Funciones):** activa o desactiva apartados (Bandeja, Semana, Mes, Áreas) y bloques (hábitos, objetivos, hitos, agenda, prioridades, duración, enfoque semanal, revisión, saludos, progreso, Telegram, celebraciones). Al desactivar algo no se borra ningún dato.
 - El tema, la personalización y las funciones se **sincronizan** entre tus dispositivos. Los temas están en `src/lib/themes.js` y las funciones en `src/lib/features.js`.

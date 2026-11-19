@@ -4,7 +4,7 @@ import Sheet from './Sheet';
 import Avatar from './Avatar';
 import TelegramCard from './TelegramCard';
 import { syncLabel } from './SyncBadge';
-import { ThemeCards, Customizer } from './ThemePicker';
+import { ThemeCards, Customizer, AppIconCard } from './ThemePicker';
 import FeaturesPanel from './FeaturesPanel';
 import { Segmented } from './primitives';
 import { useFeatures } from '../lib/features';
@@ -134,6 +134,10 @@ export default function SettingsSheet() {
       />
       {tab === 'appearance' && (
         <div className="space-y-6 animate-fade-in">
+          <section>
+            <p className="eyebrow mb-2.5">Icono de la app</p>
+            <AppIconCard />
+          </section>
           <section>
             <p className="eyebrow mb-2.5">Temas</p>
             <ThemeCards />

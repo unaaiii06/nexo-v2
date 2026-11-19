@@ -4,6 +4,7 @@ import { useAuth } from '../store/auth';
 import { shortGreeting } from '../lib/greetings';
 import { Segmented } from './primitives';
 import { cx } from '../lib/utils';
+import AppLogo from './AppLogo';
 
 /** Entrar o crear cuenta (email + contraseña). La misma cuenta en el móvil y en el Mac = datos sincronizados. */
 export default function AuthScreen() {
@@ -60,7 +61,7 @@ export default function AuthScreen() {
       <div className="ambient" aria-hidden="true" />
       <form onSubmit={submit} className="glass-strong relative w-full max-w-md rounded-[calc(32px*var(--rk))] p-7 animate-pop-in">
         <div className="text-center">
-          <img src="./icon.svg" alt="" width={64} height={64} className="mx-auto rounded-[calc(16px*var(--rk))] shadow-xl" />
+          <AppLogo size={72} className="mx-auto" />
           <p className="mt-5 text-[15px] muted">{shortGreeting()}</p>
           <h1 className="mt-1 text-[28px] font-bold leading-tight tracking-tight">{mode === 'login' ? 'Entra en Nexo' : 'Crea tu cuenta'}</h1>
           <p className="mx-auto mt-1.5 max-w-[300px] text-[14px] muted">

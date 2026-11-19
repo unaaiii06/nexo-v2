@@ -296,6 +296,9 @@ export function applyTheme(themeId, custom) {
   root.dataset.ambient = built.ambient;
   root.dataset.motion = built.motion;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', built.meta);
+  // Logo del tema: pestaña del navegador y el icono que usará iOS al «Añadir a pantalla de inicio»
+  document.querySelector('link[rel="icon"]')?.setAttribute('href', `./icons/${built.theme.id}.svg`);
+  document.querySelector('link[rel="apple-touch-icon"]')?.setAttribute('href', `./icons/${built.theme.id}-180.png`);
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ v: built.vars, s: built.scheme, a: built.ambient, m: built.motion, t: built.theme.id }));
   } catch {

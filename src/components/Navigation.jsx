@@ -7,6 +7,7 @@ import { useToday } from '../lib/hooks';
 import { cx, haptic } from '../lib/utils';
 import { ProgressBar } from './primitives';
 import { useFeatures } from '../lib/features';
+import AppLogo from './AppLogo';
 import { useAuth } from '../store/auth';
 import Avatar from './Avatar';
 
@@ -24,16 +25,7 @@ export function visibleNav(f) {
 }
 
 function Logo({ small }) {
-  return (
-    <img
-      src="./icon.svg"
-      alt=""
-      width={small ? 30 : 34}
-      height={small ? 30 : 34}
-      className="shrink-0 rounded-[calc(9px*var(--rk))] shadow-lg"
-      draggable={false}
-    />
-  );
+  return <AppLogo size={small ? 30 : 34} />;
 }
 
 /** Sidebar flotante colapsable (iPad / escritorio) */
