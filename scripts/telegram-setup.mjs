@@ -72,7 +72,7 @@ const secret = randomBytes(24).toString('hex');
 const envFile = path.join(tmpdir(), `nexo-secrets-${process.pid}.env`);
 await writeFile(envFile, `TELEGRAM_BOT_TOKEN=${token}\nTELEGRAM_WEBHOOK_SECRET=${secret}\nNEXO_APP_URL=${APP_URL}\n`, { mode: 0o600 });
 try {
-  execFileSync('supabase', ['secrets', 'set', '--project-ref', ref, '--env-file', envFile], { stdio: 'inherit' });
+  execFileSync('supabase', ['secrets', 'set', `--remote=${ref}`, '--env-file', envFile, '--yes'], { stdio: 'inherit' });
 } finally {
   await unlink(envFile).catch(() => {});
 }
