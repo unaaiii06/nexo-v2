@@ -1,5 +1,5 @@
 import { Clock, Target, Star, BellRing } from 'lucide-react';
-import { formatRemind } from '../lib/reminders';
+import { formatRemind, nextRemind, upcomingCount } from '../lib/reminders';
 import { useStore } from '../store/AppStore';
 import { useUI } from '../store/ui';
 import { areaById, goalById } from '../store/selectors';
@@ -58,10 +58,11 @@ export default function TaskRow({ task, showDate, showGoal = true, actions, clas
               </span>
             )}
             {!task.start && !compact && task.estimate ? <span className="tabular-nums">{formatDuration(task.estimate)}</span> : null}
-            {task.remindAt && !task.done && new Date(task.remindAt) > new Date() && (
+            {!task.done && nextRemind(task) && (
               <span className="inline-flex items-center gap-1 tabular-nums text-accent">
                 <BellRing size={11} />
-                {formatRemind(task.remindAt)}
+                {formatRemind(nextRemind(task))}
+                {upcomingCount(task) > 1 && <span className="opacity-70">+{upcomingCount(task) - 1}</span>}
               </span>
             )}
             <AreaBadge area={area} compact={compact} />

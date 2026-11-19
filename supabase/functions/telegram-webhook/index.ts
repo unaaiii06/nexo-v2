@@ -3,7 +3,7 @@
 //  /hoy             → lista las tareas de hoy
 //  /desconectar     → deja de recibir recordatorios
 //  Botones          → ✅ Hecho · ⏰ Posponer · 📅 Mañana (se sincroniza al instante con la app)
-import { admin, APP_URL, esc, json, localDateKey, PRIORITY, tg, WEBHOOK_SECRET } from '../_shared/telegram.ts';
+import { admin, APP_URL, esc, json, localDateKey, PRIORITY, remindAtsOf, remindsOf, tg, WEBHOOK_SECRET } from '../_shared/telegram.ts';
 
 const HELP = [
   '<b>Nexo</b> te avisará de tus tareas aquí.',
@@ -144,7 +144,12 @@ async function onCallback(db: Any, cb: Any) {
   } else if (action === 'snooze') {
     const minutes = Math.max(5, Math.min(24 * 60, Number(extra) || 15));
     const at = new Date(Date.now() + minutes * 60_000);
-    data.remindAt = at.toISOString();
+    // Se añade un aviso extra; los demás avisos de la tarea se mantienen
+    const iso = at.toISOString();
+    data.reminds = [...remindsOf(data), { mode: 'custom', at: iso }];
+    data.remindAts = [...remindAtsOf(data), iso].sort();
+    data.remind = null;
+    data.remindAt = null;
     const hhmm = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: tz }).format(at);
     toast = `Te aviso a las ${hhmm}`;
     footer = `⏰ Pospuesto a las ${hhmm}`;
@@ -153,7 +158,12 @@ async function onCallback(db: Any, cb: Any) {
     data.date = tomorrow;
     data.weekOf = null;
     data.mit = false;
-    if (data.remindAt) data.remindAt = new Date(new Date(data.remindAt).getTime() + 24 * 3600_000).toISOString();
+    // Todos los avisos se mueven también un día
+    const shift = (iso: string) => new Date(new Date(iso).getTime() + 24 * 3600_000).toISOString();
+    data.reminds = remindsOf(data).map((r: Any) => (r.mode === 'custom' && r.at ? { ...r, at: shift(r.at) } : r));
+    data.remindAts = remindAtsOf(data).map(shift);
+    data.remind = null;
+    data.remindAt = null;
     toast = 'Movida a mañana 📅';
     footer = '📅 Movida a mañana';
   } else {

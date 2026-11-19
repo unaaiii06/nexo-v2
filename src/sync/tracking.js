@@ -1,7 +1,7 @@
 // Seguimiento de cambios para la sincronización.
 // Cada cambio local deja una marca en la «bandeja de salida» (outbox) con su hora;
 // el motor de sincronización la sube y, al confirmarse, la borra.
-import { computeRemindAt } from '../lib/reminders';
+import { computeRemindAts, getReminds } from '../lib/reminders';
 
 export const SYNCED = ['tasks', 'events', 'milestones', 'goals', 'habits', 'areas'];
 const ALL = [...SYNCED, 'weekFocus'];
@@ -16,12 +16,15 @@ function refreshReminders(prev, next) {
     let changed = false;
     const list = next[c].map((item) => {
       const old = before.get(item.id);
-      if (!item.remind || item.remind.mode === 'custom' || old === item) return item;
-      if (old && old.date === item.date && old.start === item.start && old.remind === item.remind) return item;
-      const remindAt = computeRemindAt(item);
-      if (remindAt === item.remindAt) return item;
+      if (old === item) return item;
+      const reminds = getReminds(item);
+      if (!reminds.length) return item;
+      if (old && old.date === item.date && old.start === item.start && getReminds(old) === reminds) return item;
+      if (reminds.every((x) => x.mode === 'custom') && Array.isArray(item.remindAts)) return item;
+      const remindAts = computeRemindAts(item, reminds);
+      if (JSON.stringify(remindAts) === JSON.stringify(item.remindAts)) return item;
       changed = true;
-      return { ...item, remindAt };
+      return { ...item, reminds, remindAts, remind: null, remindAt: null };
     });
     if (changed) next = { ...next, [c]: list };
   }

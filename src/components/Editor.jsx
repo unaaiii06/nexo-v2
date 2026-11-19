@@ -8,7 +8,7 @@ import { goalProgress, goalsOfMonth } from '../store/selectors';
 import { addDays, addMonths, monthKeyOf, startOfWeek, todayKey, formatMonthYear, timeToMinutes, minutesToTime } from '../lib/dates';
 import { AREA_COLORS, MILESTONE_TYPES, PRIORITIES, cx } from '../lib/utils';
 import { HABIT_ICONS } from './icons';
-import { REMIND_OPTIONS, computeRemindAt, sameRemind, toLocalInput, formatRemind } from '../lib/reminders';
+import { REMIND_OPTIONS, MAX_REMINDS, computeOne, computeRemindAts, getReminds, sameRemind, toLocalInput, formatRemind } from '../lib/reminders';
 
 const TYPES = [
   { value: 'task', label: 'Tarea', icon: CheckSquare },
@@ -110,8 +110,12 @@ function EditorInner({ editor, onClose }) {
     }
     if (type === 'task' || type === 'event') {
       // Hora exacta del aviso por Telegram (la lee el servidor)
-      data.remindAt = data.remind ? computeRemindAt(data) : null;
-      if (data.remind && !data.remindAt) data.remind = null;
+      // Se quitan los avisos que no se pueden calcular (p. ej. «a la hora» sin hora)
+      const reminds = getReminds(data).filter((x) => computeOne(data, x));
+      data.reminds = reminds;
+      data.remindAts = computeRemindAts(data, reminds);
+      data.remind = null;
+      data.remindAt = null;
     }
     if (type === 'goal') {
       if (isNew && goalsOfMonth(state, data.month).length >= 5) {
@@ -351,58 +355,90 @@ function TaskFields({ draft, set, state }) {
   );
 }
 
-/** Aviso por Telegram: opciones según tenga hora, solo día o nada */
+/** Avisos por Telegram: se pueden combinar varios (hasta 5) */
 function RemindField({ draft, set }) {
   const opts = draft.date && draft.start ? REMIND_OPTIONS.withStart : draft.date ? REMIND_OPTIONS.dayOnly : [];
-  const current = draft.remind;
-  const preview = current ? computeRemindAt(draft) : null;
-  const custom = current?.mode === 'custom';
-  const defaultCustom = () => {
+  const reminds = getReminds(draft);
+  const presets = reminds.filter((x) => x.mode !== 'custom');
+  const customs = reminds.filter((x) => x.mode === 'custom');
+  const full = reminds.length >= MAX_REMINDS;
+  const times = computeRemindAts(draft, reminds);
+  const now = Date.now();
+
+  const update = (list) => set({ reminds: list, remind: null });
+  const toggle = (o) => {
+    const on = presets.some((x) => sameRemind(x, o));
+    if (on) update(reminds.filter((x) => !sameRemind(x, o)));
+    else if (!full) update([...reminds, { mode: o.mode, minutes: o.minutes, time: o.time }]);
+  };
+  const addCustom = () => {
+    if (full) return;
     const d = new Date(Date.now() + 60 * 60_000);
     d.setMinutes(0, 0, 0);
-    return d.toISOString();
+    update([...reminds, { mode: 'custom', at: d.toISOString() }]);
   };
+  const setCustom = (idx, iso) => {
+    let n = -1;
+    update(reminds.map((x) => (x.mode === 'custom' && ++n === idx ? { ...x, at: iso } : x)));
+  };
+  const removeCustom = (idx) => {
+    let n = -1;
+    update(reminds.filter((x) => !(x.mode === 'custom' && ++n === idx)));
+  };
+
   return (
-    <Field label="Recordatorio por Telegram">
+    <Field label={`Recordatorios por Telegram${reminds.length ? ` · ${reminds.length}` : ''}`}>
       <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={() => set({ remind: null })} className={cx('chip', !current && 'chip-active')}>
-          Sin aviso
+        {opts.map((o) => {
+          const on = presets.some((x) => sameRemind(x, o));
+          return (
+            <button
+              key={o.label}
+              type="button"
+              onClick={() => toggle(o)}
+              disabled={!on && full}
+              aria-pressed={on}
+              className={cx('chip', on && 'chip-active', !on && full && 'opacity-40')}
+            >
+              <BellRing size={13} /> {o.label}
+            </button>
+          );
+        })}
+        <button type="button" onClick={addCustom} disabled={full} className={cx('chip', full && 'opacity-40')}>
+          + Otra fecha y hora
         </button>
-        {opts.map((o) => (
-          <button
-            key={o.label}
-            type="button"
-            onClick={() => set({ remind: { mode: o.mode, minutes: o.minutes, time: o.time } })}
-            className={cx('chip', current && sameRemind(current, o) && 'chip-active')}
-          >
-            <BellRing size={13} /> {o.label}
+        {reminds.length > 0 && (
+          <button type="button" onClick={() => update([])} className="chip !text-danger">
+            Quitar todos
           </button>
-        ))}
-        <button
-          type="button"
-          onClick={() => set({ remind: { mode: 'custom', at: current?.at || draft.remindAt || defaultCustom() } })}
-          className={cx('chip', custom && 'chip-active')}
-        >
-          Otra fecha y hora
-        </button>
+        )}
       </div>
-      {custom && (
-        <input
-          type="datetime-local"
-          className="field mt-2 tabular-nums"
-          value={toLocalInput(current.at)}
-          onChange={(e) => e.target.value && set({ remind: { mode: 'custom', at: new Date(e.target.value).toISOString() } })}
-        />
-      )}
-      {current && (
-        <span className="mt-1.5 block text-[12px] faint">
-          {preview
-            ? new Date(preview) < new Date()
-              ? `⚠️ Esa hora ya ha pasado (${formatRemind(preview)})`
-              : `Te escribiré en Telegram: ${formatRemind(preview)}`
+
+      {customs.map((c, idx) => (
+        <div key={idx} className="mt-2 flex items-center gap-2">
+          <input
+            type="datetime-local"
+            className="field tabular-nums"
+            value={toLocalInput(c.at)}
+            onChange={(e) => e.target.value && setCustom(idx, new Date(e.target.value).toISOString())}
+            aria-label={`Aviso personalizado ${idx + 1}`}
+          />
+          <button type="button" onClick={() => removeCustom(idx)} className="icon-btn shrink-0 faint" aria-label="Quitar este aviso">
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ))}
+
+      <span className="mt-1.5 block text-[12px] faint">
+        {!reminds.length
+          ? opts.length
+            ? 'Elige uno o varios avisos (hasta 5).'
+            : 'Esta tarea no tiene día: usa «Otra fecha y hora».'
+          : times.length
+            ? `Te escribiré: ${times.map((t) => `${formatRemind(t)}${Date.parse(t) < now ? ' (ya pasó)' : ''}`).join(' · ')}`
             : 'Elige un día y una hora para poder avisarte'}
-        </span>
-      )}
+        {full && ' · Máximo 5 avisos.'}
+      </span>
     </Field>
   );
 }

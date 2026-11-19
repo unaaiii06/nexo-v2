@@ -53,13 +53,28 @@ export function reminderKeyboard(itemId: string, collection: string) {
 }
 
 // deno-lint-ignore no-explicit-any
-export function describeItem(collection: string, data: any, tz: string) {
+export function describeItem(collection: string, data: any, tz: string, remindAt?: string) {
   const icon = collection === 'events' ? '🗓' : PRIORITY[data?.priority] ?? '🔔';
   const lines = [`${icon} <b>${esc(data?.title)}</b>`];
   if (data?.start) lines.push(`🕒 ${esc(data.start)}${data.end ? `–${esc(data.end)}` : ''}`);
   if (data?.notes) lines.push(`<i>${esc(String(data.notes).slice(0, 300))}</i>`);
-  if (!data?.start && data?.remindAt) lines.push(`🕒 ${localTime(new Date(data.remindAt), tz)}`);
+  const at = remindAt ?? data?.remindAt;
+  if (!data?.start && at) lines.push(`🕒 ${localTime(new Date(at), tz)}`);
   return lines.join('\n');
+}
+
+/** Lista de avisos (acepta el formato antiguo de un solo aviso) */
+// deno-lint-ignore no-explicit-any
+export function remindsOf(data: any) {
+  if (Array.isArray(data?.reminds)) return [...data.reminds];
+  return data?.remind ? [data.remind] : [];
+}
+
+// deno-lint-ignore no-explicit-any
+export function remindAtsOf(data: any): string[] {
+  const list = Array.isArray(data?.remindAts) ? [...data.remindAts] : [];
+  if (data?.remindAt) list.push(data.remindAt);
+  return [...new Set(list)].sort();
 }
 
 export function json(body: unknown, status = 200) {

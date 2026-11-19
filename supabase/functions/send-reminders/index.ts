@@ -21,7 +21,7 @@ Deno.serve(async () => {
     const tz = tzOf.get(r.user_id) ?? 'Europe/Madrid';
     await tg('sendMessage', {
       chat_id: r.chat_id,
-      text: `🔔 <b>Recordatorio</b>\n\n${describeItem(r.collection, r.data, tz)}`,
+      text: `🔔 <b>Recordatorio</b>\n\n${describeItem(r.collection, r.data, tz, r.remind_at)}`,
       parse_mode: 'HTML',
       reply_markup: reminderKeyboard(r.item_id, r.collection),
     });

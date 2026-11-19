@@ -139,16 +139,22 @@ language plpgsql security definer set search_path = public as $$
 begin
   return query
   with due as (
-    select i.user_id, l.chat_id, i.collection, i.id as item_id, i.data, (i.data->>'remindAt')::timestamptz as remind_at
+    -- Cada tarea/bloque puede tener varios avisos (remindAts) o uno antiguo (remindAt)
+    select i.user_id, l.chat_id, i.collection, i.id as item_id, i.data, t.at as remind_at
     from public.items i
     join public.telegram_links l on l.user_id = i.user_id
+    cross join lateral (
+      select (x)::timestamptz as at
+      from jsonb_array_elements_text(case when jsonb_typeof(i.data->'remindAts') = 'array' then i.data->'remindAts' else '[]'::jsonb end) as x
+      where x <> ''
+      union
+      select (i.data->>'remindAt')::timestamptz where nullif(i.data->>'remindAt', '') is not null
+    ) t
     where i.collection in ('tasks', 'events')
       and not i.deleted
       and coalesce((i.data->>'done')::boolean, false) = false
-      and i.data ? 'remindAt'
-      and nullif(i.data->>'remindAt', '') is not null
-      and (i.data->>'remindAt')::timestamptz <= now()
-      and (i.data->>'remindAt')::timestamptz > now() - interval '6 hours'
+      and t.at <= now()
+      and t.at > now() - interval '6 hours'
   ),
   claimed as (
     insert into public.reminder_log (user_id, item_id, remind_at)
