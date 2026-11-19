@@ -6,7 +6,7 @@ import { dayProgress } from '../store/selectors';
 import { formatLongDate, formatShortDate, formatWeekdayShort, toKey } from '../lib/dates';
 import { personalGreeting, dayBand } from '../lib/greetings';
 import { useAuth } from '../store/auth';
-import Avatar from './Avatar';
+import { MyAvatar, useProfileLook } from './Avatar';
 import SyncBadge from './SyncBadge';
 import { useNow } from '../lib/hooks';
 import { useFeatures } from '../lib/features';
@@ -23,6 +23,7 @@ export default function Header() {
   const current = NAV.find((n) => n.id === view);
   const progress = dayProgress(state);
   const f = useFeatures();
+  const look = useProfileLook();
   const name = user?.name || '';
   const band = dayBand(now);
   const allDone = progress.total > 0 && progress.done === progress.total;
@@ -42,7 +43,7 @@ export default function Header() {
     <header className="relative z-20 pt-safe">
       <p key={message} className="flex items-start gap-1.5 pt-3 text-[15px] font-semibold leading-snug text-fg/85 animate-fade-in md:pt-6 md:text-[16px]">
         <BandIcon size={16} className="mt-[2px] shrink-0 text-accent" aria-hidden="true" />
-        <span>{message}</span>
+        <span>{highlightName(message, name, look.nameColor)}</span>
       </p>
       <div className="flex items-end justify-between gap-3 pb-4 pt-1">
         <div className="min-w-0">
@@ -82,10 +83,24 @@ export default function Header() {
           </button>
           <SyncBadge />
           <button type="button" onClick={() => setSettings(true)} className="icon-btn" aria-label={`Cuenta y ajustes de ${name}`} title="Cuenta y ajustes">
-            <Avatar name={name} size={38} />
+            <MyAvatar name={name} size={38} />
           </button>
         </div>
       </div>
     </header>
+  );
+}
+
+/** Pinta el nombre dentro del saludo con el color elegido */
+function highlightName(message, name, color) {
+  if (!color || !name) return message;
+  const i = message.indexOf(name);
+  if (i < 0) return message;
+  return (
+    <>
+      {message.slice(0, i)}
+      <span style={{ color }}>{name}</span>
+      {message.slice(i + name.length)}
+    </>
   );
 }

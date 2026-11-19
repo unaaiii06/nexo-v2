@@ -7,7 +7,12 @@ export const SYNCED = ['tasks', 'events', 'milestones', 'goals', 'habits', 'area
 const ALL = [...SYNCED, 'weekFocus', 'meta'];
 
 /** Preferencias que viajan entre dispositivos (la barra lateral es de cada dispositivo) */
-export const prefsOf = (settings = {}) => ({ theme: settings.theme, custom: settings.custom ?? null, features: settings.features ?? null });
+export const prefsOf = (settings = {}) => ({
+  theme: settings.theme,
+  custom: settings.custom ?? null,
+  features: settings.features ?? null,
+  profile: settings.profile ?? null, // foto y colores del perfil
+});
 const samePrefs = (a, b) => JSON.stringify(prefsOf(a)) === JSON.stringify(prefsOf(b));
 
 export const emptySync = () => ({ outbox: {}, cursor: 0, initialized: false });
@@ -113,7 +118,7 @@ export function applyRemote(state, rows) {
     if (row.collection === 'meta') {
       if (row.id === 'prefs' && row.data && !row.deleted) {
         const d = row.data;
-        settings = { ...settings, ...(d.theme ? { theme: d.theme } : {}), custom: d.custom ?? null, features: d.features ?? null };
+        settings = { ...settings, ...(d.theme ? { theme: d.theme } : {}), custom: d.custom ?? null, features: d.features ?? null, profile: d.profile ?? null };
         touched = true;
       }
       continue;

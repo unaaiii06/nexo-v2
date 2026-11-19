@@ -9,7 +9,7 @@ import { ProgressBar } from './primitives';
 import { useFeatures } from '../lib/features';
 import AppLogo from './AppLogo';
 import { useAuth } from '../store/auth';
-import Avatar from './Avatar';
+import { MyAvatar, useProfileLook } from './Avatar';
 
 export const NAV = [
   { id: 'inbox', label: 'Bandeja', long: 'Bandeja de entrada', icon: Inbox },
@@ -33,6 +33,7 @@ export function Sidebar() {
   const { state, actions } = useStore();
   const { view, setView, openEditor, setSettings } = useUI();
   const { user } = useAuth();
+  const look = useProfileLook();
   const f = useFeatures();
   const nav = visibleNav(f);
   const today = useToday();
@@ -125,8 +126,12 @@ export function Sidebar() {
           className={cx('pressable flex min-h-[44px] min-w-0 items-center gap-2.5 rounded-xl px-1.5 text-left', !collapsed && 'flex-1')}
           title="Cuenta y ajustes"
         >
-          <Avatar name={user?.name} size={30} />
-          {!collapsed && <span className="truncate text-[14px] font-semibold">{user?.name}</span>}
+          <MyAvatar name={user?.name} size={30} />
+          {!collapsed && (
+            <span className="truncate text-[14px] font-semibold" style={{ color: look.nameColor || undefined }}>
+              {user?.name}
+            </span>
+          )}
         </button>
         <button type="button" className="icon-btn muted" onClick={() => setSettings(true)} aria-label="Ajustes" title="Ajustes">
           <Settings2 size={19} />

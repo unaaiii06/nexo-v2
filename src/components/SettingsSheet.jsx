@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Download, Upload, RotateCcw, ShieldCheck, Eraser, LogOut, RefreshCw, History, Smartphone } from 'lucide-react';
 import Sheet from './Sheet';
-import Avatar from './Avatar';
+import ProfileEditor from './ProfileEditor';
 import TelegramCard from './TelegramCard';
 import { syncLabel } from './SyncBadge';
 import { ThemeCards, Customizer, AppIconCard } from './ThemePicker';
@@ -161,7 +161,7 @@ export default function SettingsSheet() {
           <p className="eyebrow mb-2.5">Cuenta</p>
           <div className="rounded-2xl p-4 card">
             <div className="flex items-center gap-3">
-              <Avatar name={name || user?.name} size={52} />
+              <ProfileEditor.Photo name={name || user?.name} />
               <div className="min-w-0 flex-1">
                 <input
                   className="field !py-2 text-[17px] font-semibold"
@@ -177,6 +177,7 @@ export default function SettingsSheet() {
                 {user?.email && <p className="mt-1 truncate px-1 text-[13px] muted">{user.email}</p>}
               </div>
             </div>
+            <ProfileEditor.Colors name={name || user?.name} />
 
             <div className="mt-4 flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: 'var(--field)' }}>
               <span
