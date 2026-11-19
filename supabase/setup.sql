@@ -112,7 +112,7 @@ declare c text;
 begin
   if auth.uid() is null then raise exception 'No autenticado'; end if;
   delete from public.telegram_codes where user_id = auth.uid() or expires_at < now();
-  c := encode(gen_random_bytes(9), 'hex');
+  c := replace(gen_random_uuid()::text, '-', '');
   insert into public.telegram_codes (code, user_id, expires_at) values (c, auth.uid(), now() + interval '15 minutes');
   return c;
 end $$;
@@ -187,3 +187,16 @@ language sql security definer set search_path = public as $$
   delete from public.telegram_codes where expires_at < now();
 $$;
 revoke all on function public.cleanup_reminder_log() from public, anon, authenticated;
+
+-- ---------------------------------------------------------------------
+-- 5. Permisos explícitos (los proyectos nuevos de Supabase no los dan por defecto).
+--    Las reglas RLS de arriba siguen limitando cada fila a su dueño.
+-- ---------------------------------------------------------------------
+grant usage on schema public to authenticated, service_role;
+grant select, insert, update, delete on public.items to authenticated;
+grant select, insert, update on public.profiles to authenticated;
+grant select, delete on public.telegram_links to authenticated;
+grant usage, select on sequence public.items_rev_seq to authenticated;
+grant all on public.items, public.profiles, public.telegram_links, public.telegram_codes, public.reminder_log to service_role;
+grant usage, select on sequence public.items_rev_seq to service_role;
+grant execute on function public.claim_due_reminders(), public.claim_due_digests(), public.cleanup_reminder_log() to service_role;
